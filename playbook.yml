@@ -2,6 +2,7 @@
 - name: Get dotfiles
   hosts: localhost
   tags: dotfiles
+  gather_facts: false
 
   tasks:
     - name: install prerequisities
@@ -55,6 +56,7 @@
 - name: Install latest GitHub CLI
   hosts: localhost
   tags: gh-install
+  gather_facts: false
 
   vars:
     github_token: "{{ lookup('env','GITHUB_PERSONAL_ACCESS_TOKEN') }}"
@@ -108,6 +110,7 @@
 - name: Authenticate and setup GitHub CLI
   hosts: localhost
   tags: gh-setup
+  gather_facts: false
 
   vars:
     github_token: "{{ lookup('env','GITHUB_PERSONAL_ACCESS_TOKEN') }}"
@@ -145,6 +148,7 @@
 - name: Install nvm and setup nodejs
   hosts: localhost
   tags: nodejs
+  gather_facts: false
 
   vars:
     load_nvm: . {{ ansible_env.HOME }}/.nvm/nvm.sh
@@ -281,6 +285,7 @@
 - name: Install latest kubernetes
   hosts: localhost
   tags: k8s
+  gather_facts: false
 
   vars:
     arch: amd64
@@ -326,6 +331,7 @@
 - name: Install latest minikube
   hosts: localhost
   tags: minikube
+  gather_facts: false
 
   vars:
     arch: amd64
@@ -363,6 +369,7 @@
 - name: Install latest helm
   hosts: localhost
   tags: helm
+  gather_facts: false
 
   vars:
     download_dest: /tmp/get_helm.sh
@@ -398,6 +405,7 @@
 - name: Install latest neovim
   hosts: localhost
   tags: nvim-install
+  gather_facts: false
 
   vars:
     github_token: "{{ lookup('env','GITHUB_PERSONAL_ACCESS_TOKEN') }}"
@@ -515,6 +523,7 @@
 - name: Setup neovim
   hosts: localhost
   tags: nvim-setup
+  gather_facts: false
 
   vars:
     load_nvm: . {{ ansible_env.HOME }}/.nvm/nvm.sh
