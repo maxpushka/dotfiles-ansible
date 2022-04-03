@@ -1,0 +1,567 @@
+---
+- name: Get dotfiles
+  hosts: localhost
+  tags: dotfiles
+
+  tasks:
+    - name: install prerequisities
+      ansible.builtin.package:
+        name:
+          - git
+          - stow
+        state: present
+        update_cache: yes
+      become: true
+
+    - name: oh-my-zsh
+      block:
+        - name: clone oh-my-zsh repo
+          ansible.builtin.git:
+            repo: https://github.com/ohmyzsh/ohmyzsh.git
+            dest: "{{ ansible_env.HOME }}/.oh-my-zsh"
+            update: yes
+
+        - name: install autosuggestions plugin
+          ansible.builtin.git:
+            repo: https://github.com/zsh-users/zsh-autosuggestions
+            dest: "{{ ansible_env.HOME }}/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
+            update: yes
+
+    - name: setup tmux and tpm plugins
+      block:
+        - name: clone tpm repo
+          ansible.builtin.git:
+            repo: https://github.com/tmux-plugins/tpm
+            dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm"
+            update: yes
+        - name: get nord plugin
+          ansible.builtin.git:
+            repo: https://github.com/arcticicestudio/nord-tmux.git
+            dest: "{{ ansible_env.HOME }}/.tmux/themes/nord-tmux"
+            update: yes
+
+    - name: setup my dotfiles
+      block:
+        - name: clone dotfiles to home directory
+          ansible.builtin.git:
+            repo: https://github.com/maxpushka/dotfiles.git
+            dest: "{{ ansible_env.HOME }}/.dotfiles"
+            update: yes
+        - name: run stow
+          command: "stow . -t {{ ansible_env.HOME }}"
+          args:
+            chdir: "{{ ansible_env.HOME }}/.dotfiles"
+
+- name: Install latest GitHub CLI
+  hosts: localhost
+  tags: gh-install
+
+  vars:
+    github_token: "{{ lookup('env','GITHUB_PERSONAL_ACCESS_TOKEN') }}"
+
+  tasks:
+    - name: Try to get installed version
+      block:
+        - shell: echo v$(gh version | head -1 | cut -d ' ' -f 3)
+          register: installed
+          ignore_errors: true
+        - name: Print installed version
+          ansible.builtin.debug:
+            var: installed
+
+    - name: "Get Latest Release from Github"
+      block:
+        - name: Install or update pip
+          ansible.builtin.package:
+            name: python3-pip
+            state: present
+          become: true
+        - name: Install github3 python package
+          ansible.builtin.pip:
+            name: github3.py
+        - community.general.github_release:
+            user: cli
+            repo: cli
+            action: latest_release
+            token: "{{ github_token }}"
+          register: release
+        - name: Print Latest release
+          ansible.builtin.debug:
+            var: release
+
+    - name: Install latest version
+      when: installed.stdout_lines[0] != release.tag
+      block:
+        - name: Download Binary
+          ansible.builtin.unarchive:
+            src: https://github.com/cli/cli/releases/download/{{ release.tag }}/gh_{{ release.tag[1:] }}_linux_amd64.tar.gz
+            dest: /tmp
+            remote_src: true
+
+        - name: Install Binary
+          ansible.builtin.copy:
+            src: /tmp/gh_{{ release.tag[1:] }}_linux_amd64/bin/gh
+            dest: "/usr/local/bin"
+            mode: a+x
+          become: true
+
+- name: Authenticate and setup GitHub CLI
+  hosts: localhost
+  tags: gh-setup
+
+  vars:
+    github_token: "{{ lookup('env','GITHUB_PERSONAL_ACCESS_TOKEN') }}"
+
+  tasks:
+    - name: Authenticate
+      shell:
+        cmd: echo "{{ github_token }}" | gh auth login --with-token
+
+    - name: Install dependencies
+      ansible.builtin.package:
+        name:
+          - fzf
+          - git
+        state: present
+      become: true
+
+    - name: Install extension if it does not exist
+      shell:
+        cmd: |
+          p={{ item }}
+          if [ ! -d {{ ansible_env.HOME }}/.local/share/gh/extensions/${p#*/} ]
+          then
+            echo "installing {{ item }}..."
+            gh extension install "{{ item }}"
+          fi
+      with_items:
+        - 'meiji163/gh-notify'
+        - 'dlvhdr/gh-prs'
+
+    - name: Set aliases
+      command:
+        cmd: gh alias set listall "api user/repos --jq '.[].full_name'"
+
+- name: Install nvm and setup nodejs
+  hosts: localhost
+  tags: nodejs
+
+  vars:
+    load_nvm: . {{ ansible_env.HOME }}/.nvm/nvm.sh
+
+  tasks:
+    - name: Setup node
+      become: true
+      become_flags: -i # Execute config files such as .profile (Ansible uses non-interactive login shells)
+      block:
+        - name: Install nvm
+          vars:
+            download_dest: /tmp/get_nvm.sh
+          block:
+            - name: get installer script
+              ansible.builtin.get_url:
+                url: https://raw.githubusercontent.com/creationix/nvm/v0.39.1/install.sh
+                dest: "{{ download_dest }}"
+            - name: changing perm of {{ download_dest }} to "700"
+              file:
+                path: "{{ download_dest }}"
+                mode: "700"
+            - name: run script
+              shell: >
+                "{{ download_dest }}"
+              args:
+                chdir: "{{ ansible_env.HOME }}"
+                creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+            - name: remove installer script
+              file:
+                path: "{{ download_dest }}"
+                state: absent
+
+        - name: Setup .profile
+          ansible.builtin.lineinfile:
+            path: "~/.profile"
+            line: source ~/.nvm/nvm.sh # This will make sure Node is on the user's PATH
+            create: yes
+
+        - name: Install node
+          shell:
+            cmd: >
+              {{ load_nvm }} && nvm install {{ item }}
+          loop:
+            - "--lts"
+            - "node"
+
+    - name: Install pnpm
+      shell: >
+        {{ load_nvm }} && npm install -g pnpm
+
+    - name: Install global node packages
+      shell: >
+        {{ load_nvm }} && pnpm -g add {{ item }}
+      loop:
+        - yarn babel jest typescript ts-node
+        - live-server serve localtunnel
+        - tailwindcss
+        - webpack tldr wscat
+
+    - name: Install commitizen
+      shell: >
+        {{ load_nvm }} && \
+        pnpm -g add commitizen cz-conventional-changelog
+
+    - name: Setup commitizen
+      ansible.builtin.lineinfile:
+        path: "~/.czrc"
+        line: '{ "path": "cz-conventional-changelog" }'
+        create: yes
+
+    - name: setup yarn
+      command:
+        cmd: echo 'export PATH=$PATH:$(yarn global bin)\n' >> {{ ansible_env.HOME }}/.profile
+
+- name: Install latest golang
+  hosts: localhost
+  tags: golang
+  gather_facts: false
+
+  vars:
+    version : "latest"
+    arch: amd64
+    os: linux
+
+    latest_version_url: https://golang.org/VERSION?m=text
+    archive_name: "{{ filename_prefix }}.{{ os }}-{{ arch }}.tar.gz"
+    download_url: https://dl.google.com/go/{{ archive_name }}
+    bin_path: /usr/local/go/bin
+
+  tasks:
+    - name: Get filename prefix with latest version
+      set_fact:
+        filename_prefix: "{{ lookup('url', latest_version_url, split_lines=False) }}"
+      when: version == "latest"
+
+    - name: Get filename prefix with fixed version
+      set_fact:
+        filename_prefix: go{{ version }}
+      when: version != "latest"
+
+    - name: Try to get installed version
+      command: go version
+      register: installed
+      ignore_errors: true
+
+    - name: Set current_version var to the current
+      set_fact:
+        current_version: "{{ installed.stdout.split(' ')[2] }}"
+      when: installed.failed == false
+
+    - name: Set current_version var to none
+      set_fact:
+        current_version: "none"
+      when: installed.failed == true
+
+    - ansible.builtin.debug:
+        var: current_version
+
+    - name: Download and extract the archive {{ archive_name }}
+      become: true
+      unarchive:
+        src: "{{ download_url }}"
+        dest: /usr/local
+        remote_src: yes
+      when: current_version != filename_prefix
+
+    - name: Add go bin to the PATH environment variable
+      ansible.builtin.lineinfile:
+        path: "~/.profile"
+        line: |
+          export PATH=$PATH:/usr/local/go/bin
+        create: yes
+
+- name: Install latest kubernetes
+  hosts: localhost
+  tags: k8s
+
+  vars:
+    arch: amd64
+    os: linux
+
+    latest_version_url: https://dl.k8s.io/release/stable.txt
+    download_dest: "{{ ansible_env.HOME }}/kubectl"
+    bin_path: /usr/local/bin/kubectl
+
+  tasks:
+    - name: Get latest version info
+      set_fact:
+        latest_version: "{{ lookup('url', latest_version_url, split_lines=False) }}"
+
+    - ansible.builtin.debug:
+        var: latest_version
+
+    - name: get k8s binary
+      ansible.builtin.get_url:
+        url: "https://dl.k8s.io/release/{{ latest_version }}/bin/{{ os }}/{{ arch }}/kubectl"
+        dest: "{{ download_dest }}"
+
+    - name: install k8s binary
+      shell: >
+        install -o root -g root -m 755 {{ download_dest }} {{ bin_path }}
+      args:
+        creates: "{{ bin_path }}"
+      become: true
+
+    - name: remove source binary
+      ansible.builtin.file:
+        path: "{{ download_dest }}"
+        state: absent
+
+    - name: print installed version
+      block:
+        - shell: >
+            kubectl version --client
+          register: k8s_version
+        - ansible.builtin.debug:
+            var: k8s_version
+
+- name: Install latest minikube
+  hosts: localhost
+  tags: minikube
+
+  vars:
+    arch: amd64
+    os: linux
+
+    download_dest: /tmp/minikube-{{ os }}-{{ arch }}
+    bin_path: /usr/local/bin/minikube
+
+  tasks:
+    - name: get minikube binary
+      ansible.builtin.get_url:
+        url: "https://storage.googleapis.com/minikube/releases/latest/minikube-{{ os }}-{{ arch }}"
+        dest: "{{ download_dest }}"
+
+    - name: install minikube binary
+      shell: >
+        install -o root -g root -m 755 {{ download_dest }} {{ bin_path }}
+      args:
+        creates: "{{ bin_path }}"
+      become: true
+
+    - name: remove source binary
+      ansible.builtin.file:
+        path: "{{ download_dest }}"
+        state: absent
+
+    - name: print installed version
+      block:
+        - shell: >
+            minikube version
+          register: minikube_version
+        - ansible.builtin.debug:
+            var: minikube_version
+
+- name: Install latest helm
+  hosts: localhost
+  tags: helm
+
+  vars:
+    download_dest: /tmp/get_helm.sh
+
+  tasks:
+    - name: get helm installer script
+      ansible.builtin.get_url:
+        url: "https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
+        dest: "{{ download_dest }}"
+
+    - name: changing perm of {{ download_dest }} to "700"
+      file:
+        path: "{{ download_dest }}"
+        mode: "700"
+
+    - name: run installer script
+      shell: >
+        {{ download_dest }}
+
+    - name: remove source binary
+      ansible.builtin.file:
+        path: "{{ download_dest }}"
+        state: absent
+
+    - name: print installed version
+      block:
+        - shell: >
+            helm version
+          register: helm_version
+        - ansible.builtin.debug:
+            var: helm_version
+
+- name: Install latest neovim
+  hosts: localhost
+  tags: nvim-install
+
+  vars:
+    github_token: "{{ lookup('env','GITHUB_PERSONAL_ACCESS_TOKEN') }}"
+
+    download_dest: /tmp/nvim.appimage
+    bin_path: /usr/local/bin/nvim
+
+  tasks:
+    - name: try to get installed nvim version
+      shell: nvim --version
+      register: installed
+      ignore_errors: true
+
+    - debug:
+        var: installed
+
+    - name: Set current_version var to the current
+      set_fact:
+        current_version: "{{ installed.stdout_lines[0].split(' ')[1] }}"
+      when: installed.failed == false
+
+    - name: Set current_version var to the none
+      set_fact:
+        current_version: "none"
+      when: installed.failed == true
+
+    - debug:
+        var: current_version
+
+    - name: get latest release of a public repository
+      block:
+        - name: Install or update pip
+          ansible.builtin.package:
+            name: python3-pip
+            state: present
+          become: true
+
+        - name: install github3 python package
+          ansible.builtin.pip:
+            name: github3.py
+
+        - community.general.github_release:
+            user: neovim
+            repo: neovim
+            action: latest_release
+            token: "{{ github_token }}"
+          register: latest_version
+
+        - debug:
+            var: latest_version
+
+    - name: download latest release
+      when: current_version != latest_version.tag
+      block:
+        - name: download latest binary
+          ansible.builtin.get_url:
+            url: https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+            dest: "{{ download_dest }}"
+
+        - name: changing perm of {{ download_dest }}
+          file:
+            path: "{{ download_dest }}"
+            mode: "a+x"
+
+        - name: try to run
+          shell: "{{ download_dest }} --version"
+          register: result
+          ignore_errors: true
+
+        - debug:
+            var: result
+
+        - name: install binary
+          when: result.failed == false
+          shell: >
+            install -o root -g root -m 755 {{ download_dest }} {{ bin_path }}
+          args:
+            creates: "{{ bin_path }}"
+          become: true
+
+        - name: install squashed fs
+          when: result.failed == true
+          block:
+            - name: squash fs
+              shell: >
+                {{ download_dest }} --appimage-extract
+              args:
+                chdir: /tmp
+                creates: /tmp/squashfs-root
+              become: true
+            - name: move the src files to home dir
+              command: >
+                mv /tmp/squashfs-root/usr/ {{ ansible_env.HOME }}/.neovim-latest/
+              args:
+                removes: "/tmp/squashfs-root/usr/"
+                creates: "{{ ansible_env.HOME }}/.neovim-latest"
+            - name: create symbolic link to binary
+              ansible.builtin.file:
+                src: "{{ ansible_env.HOME }}/.neovim-latest/bin/nvim"
+                dest: /usr/local/bin/nvim
+                state: link
+                mode: "a+x"
+
+        - name: remove download_dest
+          block:
+            - name: remove appimage
+              ansible.builtin.file:
+                path: "{{ download_dest }}"
+                state: absent
+            - name: remove squashfs
+              ansible.builtin.file:
+                path: /tmp/squashfs-root
+                state: absent
+
+- name: Setup neovim
+  hosts: localhost
+  tags: nvim-setup
+
+  vars:
+    load_nvm: . {{ ansible_env.HOME }}/.nvm/nvm.sh
+
+  tasks:
+    - name: install packer
+      block:
+        - name: install git
+          ansible.builtin.package:
+            name: git
+            state: present
+        - ansible.builtin.git:
+            repo: https://github.com/wbthomason/packer.nvim
+            dest: "{{ ansible_env.HOME }}/.local/share/nvim/site/pack/packer/start/packer.nvim"
+            depth: 1
+            update: yes
+
+    - name: install plugin dependencies
+      block:
+        - name: install python connector package for neovim
+          block:
+            - name: Install or update pip
+              ansible.builtin.package:
+                name: python3-pip
+                state: present
+              become: true
+            - ansible.builtin.pip:
+                name: pynvim
+
+        - name: install packages
+          ansible.builtin.package:
+            name:
+              - luajit
+              - ripgrep
+              - fzf
+              - fd
+              - fd-find
+            state: present
+          ignore_errors: true
+
+        - name: Install global node packages
+          shell: >
+            {{ load_nvm }} && pnpm -g add {{ item }}
+          loop:
+            - neovim typescript
+            - tree-sitter-cli
+            - eslint_d prettier
+
+    - name: install neovim plugins
+      shell: nvim --headless +PackerSync +qa
