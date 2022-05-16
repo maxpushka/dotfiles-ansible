@@ -28,18 +28,11 @@
             dest: "{{ ansible_env.HOME }}/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
             update: yes
 
-    - name: setup tmux and tpm plugins
-      block:
-        - name: clone tpm repo
-          ansible.builtin.git:
-            repo: https://github.com/tmux-plugins/tpm
-            dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm"
-            update: yes
-        - name: get nord plugin
-          ansible.builtin.git:
-            repo: https://github.com/arcticicestudio/nord-tmux.git
-            dest: "{{ ansible_env.HOME }}/.tmux/themes/nord-tmux"
-            update: yes
+    - name: clone tpm repo
+      ansible.builtin.git:
+        repo: https://github.com/tmux-plugins/tpm
+        dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm"
+        update: yes
 
     - name: setup my dotfiles
       block:
@@ -138,8 +131,8 @@
             gh extension install "{{ item }}"
           fi
       with_items:
-        - 'meiji163/gh-notify'
-        - 'dlvhdr/gh-prs'
+        - "meiji163/gh-notify"
+        - "dlvhdr/gh-prs"
 
     - name: Set aliases
       command:
@@ -229,7 +222,7 @@
   gather_facts: false
 
   vars:
-    version : "latest"
+    version: "latest"
     arch: amd64
     os: linux
 
@@ -405,7 +398,6 @@
 - name: Install latest neovim
   hosts: localhost
   tags: nvim-install
-  gather_facts: false
 
   vars:
     github_token: "{{ lookup('env','GITHUB_PERSONAL_ACCESS_TOKEN') }}"
