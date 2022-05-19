@@ -4,6 +4,10 @@
   tags: dotfiles
   gather_facts: false
 
+  var:
+    ohmyzsh_path: "{{ ansible_env.HOME }}/.oh-my-zsh"
+    dotfiles_path: "{{ ansible_env.HOME }}/.dotfiles"
+
   tasks:
     - name: install prerequisities
       ansible.builtin.package:
@@ -19,13 +23,19 @@
         - name: clone oh-my-zsh repo
           ansible.builtin.git:
             repo: https://github.com/ohmyzsh/ohmyzsh.git
-            dest: "{{ ansible_env.HOME }}/.oh-my-zsh"
+            dest: "{{ ohmyzsh_path }}"
             update: yes
 
         - name: install autosuggestions plugin
           ansible.builtin.git:
             repo: https://github.com/zsh-users/zsh-autosuggestions
-            dest: "{{ ansible_env.HOME }}/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
+            dest: "{{ ohmyzsh_path }}/custom/plugins/zsh-autosuggestions"
+            update: yes
+
+        - name: install cutsom oh-my-zsh theme
+          ansible.builtin.git:
+            repo: https://github.com/reobin/typewritten.git
+            dest: "{{ ohmyzsh_path }}/themes/typewritten"
             update: yes
 
     - name: clone tpm repo
@@ -39,12 +49,12 @@
         - name: clone dotfiles to home directory
           ansible.builtin.git:
             repo: https://github.com/maxpushka/dotfiles.git
-            dest: "{{ ansible_env.HOME }}/.dotfiles"
+            dest: "{{ dotfiles_path }}"
             update: yes
         - name: run stow
           command: "stow . -t {{ ansible_env.HOME }}"
           args:
-            chdir: "{{ ansible_env.HOME }}/.dotfiles"
+            chdir: "{{ dotfiles_path }}" 
 
 - name: Install latest GitHub CLI
   hosts: localhost
