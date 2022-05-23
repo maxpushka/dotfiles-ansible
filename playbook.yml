@@ -14,12 +14,14 @@
           - git
           - stow
           - zsh
+          - tmux
+          - exa
         state: present
         update_cache: yes
       become: true
 
-    - name: change user shell to zsh 
-      become: yes
+    - name: change user shell to zsh
+      become: true
       user:
         name: "{{ ansible_user_id }}"
         shell: /bin/zsh
@@ -60,7 +62,8 @@
         - name: run stow
           command: "stow . -t {{ ansible_env.HOME }}"
           args:
-            chdir: "{{ dotfiles_path }}" 
+            chdir: "{{ dotfiles_path }}"
+          ignore_errors: true
 
 - name: Install latest GitHub CLI
   hosts: localhost
@@ -157,56 +160,37 @@
   tags: nodejs
 
   vars:
-    load_nvm: . {{ ansible_env.HOME }}/.nvm/nvm.sh
-    load_pnpm: . {{ ansible_env.HOME }}/.bashrc
+    source_zshrc: . {{ ansible_env.HOME }}/.zshrc
 
   tasks:
-    - name: Setup node
-      block:
-        - name: Install nvm
-          vars:
-            download_dest: /tmp/get_nvm.sh
-          block:
-            - name: get installer script
-              ansible.builtin.get_url:
-                url: https://raw.githubusercontent.com/creationix/nvm/v0.39.1/install.sh
-                dest: "{{ download_dest }}"
-            - name: changing perm of {{ download_dest }} to "700"
-              file:
-                path: "{{ download_dest }}"
-                mode: "700"
-            - name: run script
-              shell: >
-                "{{ download_dest }}"
-              args:
-                chdir: "{{ ansible_env.HOME }}"
-                creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
-            - name: remove installer script
-              file:
-                path: "{{ download_dest }}"
-                state: absent
+    - name: install prerequisities
+      ansible.builtin.package:
+        name:
+          - curl
+          - zsh
+        state: present
+      become: true
 
-        - name: Setup .profile
-          ansible.builtin.lineinfile:
-            path: "~/.profile"
-            line: source ~/.nvm/nvm.sh # This will make sure Node is on the user's PATH
-            create: yes
+    - name: Install nvm
+      shell: >
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | /bin/zsh -
+      args:
+        creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
 
-        - name: Install node
-          shell:
-            cmd: >
-              {{ load_nvm }} && nvm install {{ item }}
-          loop:
-            - "--lts"
-            - "node"
+    - name: Install node
+      shell:
+        cmd: >
+          /bin/zsh -c "{{ source_zshrc }} && nvm install {{ item }}"
+      loop:
+        - "--lts"
+        - "node"
 
     - name: Install pnpm
-      shell: >
-        {{ load_nvm }} && npm install -g pnpm && pnpm setup
+      shell: /bin/zsh -c "{{ source_zshrc }} && npm install -g pnpm && pnpm setup"
 
     - name: Install global node packages
       shell: >
-        {{ load_nvm }} && {{ load_pnpm }} && pnpm -g add {{ item }}
+        /bin/zsh -c "{{ source_zshrc }} && pnpm -g add {{ item }}"
       loop:
         - yarn babel jest typescript ts-node
         - live-server serve localtunnel
@@ -215,8 +199,7 @@
 
     - name: Install commitizen
       shell: >
-        {{ load_nvm }} && {{ load_pnpm }} && \
-        pnpm -g add commitizen cz-conventional-changelog
+        /bin/zsh -c "{{ source_zshrc }} && pnpm -g add commitizen cz-conventional-changelog"
 
     - name: Setup commitizen
       ansible.builtin.lineinfile:
@@ -386,7 +369,7 @@
         state: present
         update_cache: yes
       become: true
-  
+
     - name: get helm installer script
       ansible.builtin.get_url:
         url: "https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
@@ -489,7 +472,7 @@
         - debug:
             var: result
 
-        - name: install binary
+        - name: install as a binary
           when: result.failed == false
           shell: >
             install -o root -g root -m 755 {{ download_dest }} {{ bin_path }}
@@ -497,7 +480,7 @@
             creates: "{{ bin_path }}"
           become: true
 
-        - name: install squashed fs
+        - name: install as a squashed fs
           when: result.failed == true
           block:
             - name: squash fs
@@ -513,14 +496,17 @@
               args:
                 removes: "/tmp/squashfs-root/usr/"
                 creates: "{{ ansible_env.HOME }}/.neovim-latest"
+              become: true
             - name: create symbolic link to binary
               ansible.builtin.file:
                 src: "{{ ansible_env.HOME }}/.neovim-latest/bin/nvim"
                 dest: /usr/local/bin/nvim
                 state: link
                 mode: "a+x"
+              become: true
 
         - name: remove download_dest
+          become: true
           block:
             - name: remove appimage
               ansible.builtin.file:
@@ -536,8 +522,7 @@
   tags: nvim-setup
 
   vars:
-    load_nvm: . {{ ansible_env.HOME }}/.nvm/nvm.sh
-    load_pnpm: . {{ ansible_env.HOME }}/.bashrc
+    source_zshrc: . {{ ansible_env.HOME }}/.zshrc
 
   tasks:
     - name: install packer
@@ -575,11 +560,11 @@
               - fd-find
               - clang # for tree-sitter
             state: present
-          ignore_errors: true          
+          ignore_errors: true
 
         - name: Install global node packages
           shell: >
-            {{ load_nvm }} && {{ load_pnpm }} && pnpm -g add {{ item }}
+            /bin/zsh -c "{{ source_zshrc }} && pnpm -g add {{ item }}"
           loop:
             - neovim typescript
             - tree-sitter-cli
