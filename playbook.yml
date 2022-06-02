@@ -209,12 +209,11 @@
 
     - name: setup yarn
       command:
-        cmd: echo 'export PATH=$PATH:$(yarn global bin)\n' >> {{ ansible_env.HOME }}/.profile
+        cmd: echo 'export PATH=$PATH:$(yarn global bin)\n' >> {{ ansible_env.HOME }}/.zshrc
 
 - name: Install latest golang
   hosts: localhost
   tags: golang
-  gather_facts: false
 
   vars:
     version: "latest"
@@ -265,9 +264,12 @@
 
     - name: Add go bin to the PATH environment variable
       ansible.builtin.lineinfile:
-        path: "~/.profile"
+        path: "~/.zshrc"
         line: |
+      
           export PATH=$PATH:/usr/local/go/bin
+          export PATH=$PATH:{{ ansible_env.HOME }}/go/bin
+      
         create: yes
 
 - name: Install latest kubernetes
@@ -556,9 +558,9 @@
               - luajit
               - ripgrep
               - fzf
+              - clang # for tree-sitter
               - fd
               - fd-find
-              - clang # for tree-sitter
             state: present
           ignore_errors: true
 
