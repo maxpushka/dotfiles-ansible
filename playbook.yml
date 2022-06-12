@@ -83,7 +83,7 @@
           ansible.builtin.debug:
             var: installed
 
-    - name: "Get Latest Release from Github"
+    - name: Get latest release from Github
       block:
         - name: Install or update pip
           ansible.builtin.package:
@@ -324,30 +324,39 @@
     - ansible.builtin.debug:
         var: latest_version
 
-    - name: get k8s binary
-      ansible.builtin.get_url:
-        url: "https://dl.k8s.io/release/{{ latest_version }}/bin/{{ os }}/{{ arch }}/kubectl"
-        dest: "{{ download_dest }}"
+    - name: Try to get installed version
+      command: >
+        kubectl version --output json --client | jq .clientVersion.gitVersion
+      register: installed_version
+      ignore_errors: true
 
-    - name: install k8s binary
-      shell: >
-        install -o root -g root -m 755 {{ download_dest }} {{ bin_path }}
-      args:
-        creates: "{{ bin_path }}"
-      become: true
-
-    - name: remove source binary
-      ansible.builtin.file:
-        path: "{{ download_dest }}"
-        state: absent
-
-    - name: print installed version
+    - name: setup latest binary
+      when: installed_version.failed == true or installed_version != latest_version
       block:
-        - shell: >
-            kubectl version --client
-          register: k8s_version
-        - ansible.builtin.debug:
-            var: k8s_version
+        - name: get k8s binary
+          ansible.builtin.get_url:
+            url: "https://dl.k8s.io/release/{{ latest_version }}/bin/{{ os }}/{{ arch }}/kubectl"
+            dest: "{{ download_dest }}"
+
+        - name: install k8s binary
+          shell: >
+            install -o root -g root -m 755 {{ download_dest }} {{ bin_path }}
+          args:
+            creates: "{{ bin_path }}"
+          become: true
+
+        - name: remove source binary
+          ansible.builtin.file:
+            path: "{{ download_dest }}"
+            state: absent
+
+        - name: print installed version
+          block:
+            - shell: >
+                kubectl version --client
+              register: k8s_version
+            - ansible.builtin.debug:
+                var: k8s_version
 
 - name: Install latest minikube
   hosts: localhost
@@ -594,6 +603,7 @@
               - fd-find
             state: present
           ignore_errors: true
+          become: true
 
         - name: Install global node packages
           shell: >
@@ -603,5 +613,3 @@
             - tree-sitter-cli
             - eslint_d prettier
 
-    - name: install neovim plugins
-      shell: nvim --headless +PackerSync +qa
