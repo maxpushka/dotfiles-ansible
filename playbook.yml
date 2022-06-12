@@ -16,6 +16,7 @@
           - zsh
           - tmux
           - exa
+          - zoxide
         state: present
         update_cache: yes
       become: true
@@ -272,6 +273,36 @@
       
         create: yes
 
+- name: Install latest docker
+  hosts: localhost
+  tags: docker
+
+  vars:
+    download_dest: /tmp/get-docker.sh
+
+  tasks:
+    - name: Get installer script
+      ansible.builtin.get_url:
+        url: "https://get.docker.com/"
+        dest: "{{ download_dest }}"
+
+    - name: run installer script
+      shell: >
+        sh {{ download_dest }}
+
+    - name: remove source binary
+      ansible.builtin.file:
+        path: "{{ download_dest }}"
+        state: absent
+
+    - name: print installed version
+      block:
+        - shell: >
+            docker --version
+          register: docker_version
+        - ansible.builtin.debug:
+            var: docker_version
+
 - name: Install latest kubernetes
   hosts: localhost
   tags: k8s
@@ -282,7 +313,7 @@
     os: linux
 
     latest_version_url: https://dl.k8s.io/release/stable.txt
-    download_dest: "{{ ansible_env.HOME }}/kubectl"
+    download_dest: "/tmp/kubectl"
     bin_path: /usr/local/bin/kubectl
 
   tasks:
