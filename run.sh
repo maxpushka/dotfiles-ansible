@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/zsh
 
-# 1. manually install git, zsh, ansible
+# 1. manually install git, zsh, ansible, python-pip
 # 2. create github access token with scopes read:org and repo
 
 ansible-galaxy collection install community.general

@@ -156,6 +156,7 @@
       with_items:
         - "meiji163/gh-notify"
         - "dlvhdr/gh-prs"
+        - "kawarimidoll/gh-q"
 
     - name: Set aliases
       command:
