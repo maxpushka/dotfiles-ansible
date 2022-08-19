@@ -18,7 +18,7 @@
           - exa
           - zoxide
         state: present
-        update_cache: yes
+        update_cache: no
       become: true
 
     - name: change user shell to zsh
@@ -197,12 +197,15 @@
 
     - name: Install global node packages
       shell: >
-        /bin/zsh -c "{{ source_zshrc }} && pnpm -g add {{ item }}"
-      loop:
-        - yarn babel jest typescript ts-node
-        - live-server serve localtunnel
-        - tailwindcss
-        - webpack tldr wscat
+        /bin/zsh -c "{{ source_zshrc }} && pnpm -g add \ 
+        yarn babel jest \
+        typescript ts-node @types/node \
+        live-server serve localtunnel \
+        tailwindcss tldr wscat \
+        webpack esbuild \
+        eslint eslint_d prettier \
+        @typescript-eslint/eslint-plugin \
+        @typescript-eslint/parser"
 
     - name: Install commitizen
       shell: >
@@ -223,7 +226,7 @@
   tags: golang
 
   vars:
-    version: "1.17.11"
+    version: "1.18.5"
     arch: amd64
     os: linux
 
