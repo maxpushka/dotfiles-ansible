@@ -193,19 +193,21 @@
         - "node"
 
     - name: Install pnpm
-      shell: /bin/zsh -c "{{ source_zshrc }} && npm install -g pnpm && pnpm setup"
+      shell: curl -fsSL https://get.pnpm.io/install.sh | /bin/zsh -
 
     - name: Install global node packages
       shell: >
-        /bin/zsh -c "{{ source_zshrc }} && pnpm -g add \ 
-        yarn babel jest \
-        typescript ts-node @types/node \
-        live-server serve localtunnel \
-        tailwindcss tldr wscat \
-        webpack esbuild \
-        eslint eslint_d prettier \
-        @typescript-eslint/eslint-plugin \
-        @typescript-eslint/parser"
+        /bin/zsh -c "{{ source_zshrc }} && pnpm -g add {{ item }}"
+      with_items:
+        - "yarn babel jest"
+        - "typescript ts-node @types/node"
+        - "live-server serve localtunnel"
+        - "tailwindcss tldr wscat"
+        - "webpack esbuild"
+        - "eslint eslint_d prettier"
+        - "@typescript-eslint/eslint-plugin"
+        - "@typescript-eslint/parser"
+
 
     - name: Install commitizen
       shell: >
@@ -652,6 +654,7 @@
               - luajit
               - ripgrep
               - fzf
+              - gcc   # for tree-sitter
               - clang # for tree-sitter
               - fd
               - fd-find
