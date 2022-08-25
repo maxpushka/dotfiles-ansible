@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 # 1. manually install git, zsh, ansible, python-pip
 # 2. create github access token with scopes `read:org` and `repo`

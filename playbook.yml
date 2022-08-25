@@ -5,21 +5,23 @@
 
   vars:
     ohmyzsh_path: "{{ ansible_env.HOME }}/.oh-my-zsh"
-    dotfiles_path: "{{ ansible_env.HOME }}/.dotfiles"
+    dotfiles_path: "{{ ansible_env.HOME }}/dev/github.com/maxpushka/dotfiles"
 
   tasks:
     - name: install prerequisities
       ansible.builtin.package:
-        name:
-          - git
-          - stow
-          - zsh
-          - tmux
-          - exa
-          - zoxide
+        name: "{{ item }}"
         state: present
         update_cache: no
       become: true
+      ignore_errors: true
+      with_items:
+        - git
+        - stow
+        - zsh
+        - tmux
+        - exa
+        - zoxide
 
     - name: change user shell to zsh
       become: true
@@ -92,9 +94,13 @@
       block:
         - name: Install or update pip
           ansible.builtin.package:
-            name: python-pip
+            name: "{{ item }}"
             state: present
           become: true
+          ignore_errors: true
+          with_items:
+            - python-pip
+            - python3-pip
         - name: Install github3 python package
           ansible.builtin.pip:
             name: github3.py
@@ -138,11 +144,12 @@
 
     - name: Install dependencies
       ansible.builtin.package:
-        name:
-          - fzf
-          - git
+        name: "{{ item }}"
         state: present
       become: true
+      with_items:
+        - fzf
+        - git
 
     - name: Install extension if it does not exist
       shell:
@@ -172,11 +179,12 @@
   tasks:
     - name: install prerequisities
       ansible.builtin.package:
-        name:
-          - curl
-          - zsh
+        name: "{{ item }}"
         state: present
       become: true
+      with_items:
+        - curl
+        - zsh
 
     - name: Install nvm
       shell: >
@@ -279,10 +287,25 @@
         path: "~/.zshrc"
         line: |
 
+          # go
           export PATH=$PATH:/usr/local/go/bin             # GOROOT
           export PATH=$PATH:{{ ansible_env.HOME }}/go/bin # GOPATH
+          alias up="cd $(ghq root) && ghq get --parallel --update github.com/*/* && cd -"
+          # go end
 
         create: yes
+
+    - name: Install extra packages
+      command: go install "{{ item }}"
+      with_items:
+        - github.com/cweill/gotests/gotests@latest 
+        - github.com/fatih/gomodifytags@latest 
+        - github.com/josharian/impl@latest 
+        - github.com/haya14busa/goplay/cmd/goplay@latest 
+        - github.com/go-delve/delve/cmd/dlv@latest 
+        - golang.org/x/lint/golint@latest 
+        - golang.org/x/tools/gopls@latest 
+        - github.com/x-motemen/ghq@latest
 
 - name: Install rust
   tags: rust
@@ -531,9 +554,13 @@
       block:
         - name: Install or update pip
           ansible.builtin.package:
-            name: python-pip
+            name: "{{ item }}"
             state: present
           become: true
+          ignore_errors: true
+          with_items:
+            - python-pip
+            - python3-pip
 
         - name: install github3 python package
           ansible.builtin.pip:
@@ -642,25 +669,30 @@
           block:
             - name: Install or update pip
               ansible.builtin.package:
-                name: python-pip
+                name: "{{ item }}"
                 state: present
               become: true
+              ignore_errors: true
+              with_items:
+                - python-pip
+                - python3-pip
             - ansible.builtin.pip:
                 name: pynvim
 
         - name: install packages
           ansible.builtin.package:
-            name:
-              - luajit
-              - ripgrep
-              - fzf
-              - gcc   # for tree-sitter
-              - clang # for tree-sitter
-              - fd
-              - fd-find
+            name: "{{ item }}"
             state: present
-          ignore_errors: true
           become: true
+          ignore_errors: true
+          with_items:
+            - luajit
+            - ripgrep
+            - fzf
+            - gcc   # for tree-sitter
+            - clang # for tree-sitter
+            - fd
+            - fd-find
 
         - name: Install global node packages
           shell: >
