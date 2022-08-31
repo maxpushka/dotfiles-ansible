@@ -1,0 +1,46 @@
+---
+# this play is idempotent as installer
+# script runs update if helm is already installed
+- name: Install latest helm
+  hosts: localhost
+  tags: helm
+  gather_facts: false
+
+  vars:
+    download_dest: /tmp/get_helm.sh
+
+  tasks:
+    - name: install prerequisities
+      ansible.builtin.package:
+        name: openssl
+        state: present
+        update_cache: yes
+      become: true
+
+    - name: get helm installer script
+      ansible.builtin.get_url:
+        url: "https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
+        dest: "{{ download_dest }}"
+
+    - name: changing perm of {{ download_dest }} to "700"
+      file:
+        path: "{{ download_dest }}"
+        mode: "700"
+
+    - name: run installer script
+      shell: >
+        {{ download_dest }}
+
+    - name: remove source binary
+      ansible.builtin.file:
+        path: "{{ download_dest }}"
+        state: absent
+
+    - name: print installed version
+      block:
+        - shell: >
+            helm version
+          register: helm_version
+        - ansible.builtin.debug:
+            var: helm_version
+

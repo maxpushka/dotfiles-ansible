@@ -1,0 +1,56 @@
+---
+- name: Install latest kubernetes
+  hosts: localhost
+  tags: k8s
+  gather_facts: false
+
+  vars:
+    arch: amd64
+    os: linux
+
+    latest_version_url: https://dl.k8s.io/release/stable.txt
+    download_dest: "/tmp/kubectl"
+    bin_path: /usr/local/bin/kubectl
+
+  tasks:
+    - name: Get latest version info
+      set_fact:
+        latest_version: "{{ lookup('url', latest_version_url, split_lines=False) }}"
+
+    - ansible.builtin.debug:
+        var: latest_version
+
+    - name: Try to get installed version
+      command: >
+        kubectl version --output json --client | jq .clientVersion.gitVersion
+      register: installed_version
+      ignore_errors: true
+
+    - name: setup latest binary
+      when: installed_version.failed == true or installed_version != latest_version
+      block:
+        - name: get k8s binary
+          ansible.builtin.get_url:
+            url: "https://dl.k8s.io/release/{{ latest_version }}/bin/{{ os }}/{{ arch }}/kubectl"
+            dest: "{{ download_dest }}"
+
+        - name: install k8s binary
+          shell: >
+            install -o root -g root -m 755 {{ download_dest }} {{ bin_path }}
+          args:
+            creates: "{{ bin_path }}"
+          become: true
+
+        - name: remove source binary
+          ansible.builtin.file:
+            path: "{{ download_dest }}"
+            state: absent
+
+        - name: print installed version
+          block:
+            - shell: >
+                kubectl version --client
+              register: k8s_version
+            - ansible.builtin.debug:
+                var: k8s_version
+

@@ -1,0 +1,41 @@
+---
+- name: Install deno
+  hosts: localhost
+  tags: deno
+
+  tasks:
+    - name: Check if deno is installed
+      shell: command -v deno
+      register: deno_exists
+      ignore_errors: true
+
+    - name: Update deno
+      when: deno_exists is succeeded
+      shell: deno upgrade
+
+    - name: Install deno
+      when: deno_exists is failed
+      block:
+        - name: Install prerequisities
+          ansible.builtin.package:
+            name: curl
+            state: present
+          become: true
+
+        - name: Run deno installer script
+          shell: curl -fsSL https://deno.land/install.sh | sh
+          args:
+            creates: "{{ ansible_env.HOME }}/.deno"
+
+        - name: Add deno to PATH
+          ansible.builtin.lineinfile:
+            path: "~/.zshrc"
+            line: |
+
+              # deno
+              export DENO_INSTALL="/home/maxpushka/.deno"
+              export PATH="$DENO_INSTALL/bin:$PATH"
+              # deno end
+
+            create: yes
+

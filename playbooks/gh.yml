@@ -1,0 +1,97 @@
+---
+- name: Install latest GitHub CLI
+  hosts: localhost
+  tags: gh-install
+
+  vars:
+    github_token: "{{ lookup('env','GITHUB_PERSONAL_ACCESS_TOKEN') }}"
+
+  tasks:
+    - name: Try to get installed version
+      block:
+        - shell: echo v$(gh version | head -1 | cut -d ' ' -f 3)
+          register: installed
+          ignore_errors: true
+        - name: Print installed version
+          ansible.builtin.debug:
+            var: installed
+
+    - name: Get latest release from Github
+      block:
+        - name: Install or update pip
+          ansible.builtin.package:
+            name: "{{ item }}"
+            state: present
+          become: true
+          ignore_errors: true
+          with_items:
+            - python-pip
+            - python3-pip
+        - name: Install github3 python package
+          ansible.builtin.pip:
+            name: github3.py
+        - community.general.github_release:
+            user: cli
+            repo: cli
+            action: latest_release
+            token: "{{ github_token }}"
+          register: release
+        - name: Print Latest release
+          ansible.builtin.debug:
+            var: release
+
+    - name: Install latest version
+      when: installed.stdout_lines[0] != release.tag
+      block:
+        - name: Download Binary
+          ansible.builtin.unarchive:
+            src: https://github.com/cli/cli/releases/download/{{ release.tag }}/gh_{{ release.tag[1:] }}_linux_amd64.tar.gz
+            dest: /tmp
+            remote_src: true
+
+        - name: Install Binary
+          ansible.builtin.copy:
+            src: /tmp/gh_{{ release.tag[1:] }}_linux_amd64/bin/gh
+            dest: "/usr/local/bin"
+            mode: a+x
+          become: true
+
+- name: Authenticate and setup GitHub CLI
+  hosts: localhost
+  tags: gh-setup
+
+  vars:
+    github_token: "{{ lookup('env','GITHUB_PERSONAL_ACCESS_TOKEN') }}"
+
+  tasks:
+    - name: Authenticate
+      shell:
+        cmd: echo "{{ github_token }}" | gh auth login --with-token && gh auth setup-git
+
+    - name: Install dependencies
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      become: true
+      with_items:
+        - fzf
+        - git
+
+    - name: Install extension if it does not exist
+      shell:
+        cmd: |
+          p={{ item }}
+          if [ ! -d {{ ansible_env.HOME }}/.local/share/gh/extensions/${p#*/} ]
+          then
+            echo "installing {{ item }}..."
+            gh extension install "{{ item }}"
+          fi
+      with_items:
+        - "meiji163/gh-notify"
+        - "dlvhdr/gh-prs"
+        - "kawarimidoll/gh-q"
+
+    - name: Set aliases
+      command:
+        cmd: gh alias set listall "api user/repos --jq '.[].full_name'"
+

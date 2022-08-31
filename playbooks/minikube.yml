@@ -1,0 +1,39 @@
+---
+- name: Install latest minikube
+  hosts: localhost
+  tags: minikube
+  gather_facts: false
+
+  vars:
+    arch: amd64
+    os: linux
+
+    download_dest: /tmp/minikube-{{ os }}-{{ arch }}
+    bin_path: /usr/local/bin/minikube
+
+  tasks:
+    - name: get minikube binary
+      ansible.builtin.get_url:
+        url: "https://storage.googleapis.com/minikube/releases/latest/minikube-{{ os }}-{{ arch }}"
+        dest: "{{ download_dest }}"
+
+    - name: install minikube binary
+      shell: >
+        install -o root -g root -m 755 {{ download_dest }} {{ bin_path }}
+      args:
+        creates: "{{ bin_path }}"
+      become: true
+
+    - name: remove source binary
+      ansible.builtin.file:
+        path: "{{ download_dest }}"
+        state: absent
+
+    - name: print installed version
+      block:
+        - shell: >
+            minikube version
+          register: minikube_version
+        - ansible.builtin.debug:
+            var: minikube_version
+

@@ -1,0 +1,37 @@
+---
+- name: Install latest docker
+  hosts: localhost
+  tags: docker
+
+  vars:
+    download_dest: /tmp/get-docker.sh
+
+  tasks:
+    - name: Check if docker is installed
+      shell: command -v docker
+      register: docker_exists
+      ignore_errors: true
+
+    - name: Install docker
+      when: docker_exists is failed
+      block:
+        - name: Get installer script
+          ansible.builtin.get_url:
+            url: "https://get.docker.com/"
+            dest: "{{ download_dest }}"
+
+        - name: run installer script
+          shell: sh {{ download_dest }}
+
+        - name: remove source binary
+          ansible.builtin.file:
+            path: "{{ download_dest }}"
+            state: absent
+
+        - name: print installed version
+          block:
+            - shell: >
+                docker --version
+              register: docker_version
+            - ansible.builtin.debug:
+                var: docker_version

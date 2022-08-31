@@ -1,0 +1,77 @@
+---
+- name: Install latest golang
+  hosts: localhost
+  tags: go
+
+  vars:
+    version: "1.18.5"
+    arch: amd64
+    os: linux
+
+    latest_version_url: https://golang.org/VERSION?m=text
+    archive_name: "{{ filename_prefix }}.{{ os }}-{{ arch }}.tar.gz"
+    download_url: https://dl.google.com/go/{{ archive_name }}
+    bin_path: /usr/local/go/bin
+
+  tasks:
+    - name: Get filename prefix with latest version
+      set_fact:
+        filename_prefix: "{{ lookup('url', latest_version_url, split_lines=False) }}"
+      when: version == "latest"
+
+    - name: Get filename prefix with fixed version
+      set_fact:
+        filename_prefix: go{{ version }}
+      when: version != "latest"
+
+    - name: Try to get installed version
+      command: go version
+      register: installed
+      ignore_errors: true
+
+    - name: Set current_version var to the current
+      set_fact:
+        current_version: "{{ installed.stdout.split(' ')[2] }}"
+      when: installed.failed == false
+
+    - name: Set current_version var to none
+      set_fact:
+        current_version: "none"
+      when: installed.failed == true
+
+    - ansible.builtin.debug:
+        var: current_version
+
+    - name: Download and extract the archive {{ archive_name }}
+      become: true
+      unarchive:
+        src: "{{ download_url }}"
+        dest: /usr/local
+        remote_src: yes
+      when: current_version != filename_prefix
+
+    - name: Add go bin to PATH
+      ansible.builtin.lineinfile:
+        path: "~/.zshrc"
+        line: |
+
+          # go
+          export PATH=$PATH:/usr/local/go/bin             # GOROOT
+          export PATH=$PATH:{{ ansible_env.HOME }}/go/bin # GOPATH
+          alias up="cd $(ghq root) && ghq get --parallel --update github.com/*/* && cd -"
+          # go end
+
+        create: yes
+
+    - name: Install extra packages
+      command: go install "{{ item }}"
+      with_items:
+        - github.com/cweill/gotests/gotests@latest 
+        - github.com/fatih/gomodifytags@latest 
+        - github.com/josharian/impl@latest 
+        - github.com/haya14busa/goplay/cmd/goplay@latest 
+        - github.com/go-delve/delve/cmd/dlv@latest 
+        - golang.org/x/lint/golint@latest 
+        - golang.org/x/tools/gopls@latest 
+        - github.com/x-motemen/ghq@latest
+

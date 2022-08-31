@@ -1,0 +1,20 @@
+---
+- name: Install Taskfile
+  hosts: localhost
+  tags: taskfile
+
+  vars:
+    github_token: "{{ lookup('env','GITHUB_PERSONAL_ACCESS_TOKEN') }}"
+    bin_path: /usr/local/bin/
+
+  tasks:
+    - name: install prerequisities
+      ansible.builtin.package:
+        name: curl
+        state: present
+      become: true
+
+    - name: Run Taskfile installer
+      shell: >
+        sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b "{{ bin_path }}"
+      become: true

@@ -1,0 +1,63 @@
+---
+- name: Install nvm and setup nodejs
+  hosts: localhost
+  tags: nodejs
+
+  vars:
+    source_zshrc: . {{ ansible_env.HOME }}/.zshrc
+
+  tasks:
+    - name: install prerequisities
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      become: true
+      with_items:
+        - curl
+        - zsh
+
+    - name: Install nvm
+      shell: >
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | /bin/zsh -
+      args:
+        creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+
+    - name: Install node
+      shell:
+        cmd: >
+          /bin/zsh -c "{{ source_zshrc }} && nvm install {{ item }}"
+      loop:
+        - "--lts"
+        - "node"
+
+    - name: Install pnpm
+      shell: curl -fsSL https://get.pnpm.io/install.sh | /bin/zsh -
+
+    - name: Install global node packages
+      shell: >
+        /bin/zsh -c "{{ source_zshrc }} && pnpm -g add {{ item }}"
+      with_items:
+        - "yarn babel jest"
+        - "typescript ts-node @types/node"
+        - "live-server serve localtunnel"
+        - "tailwindcss tldr wscat"
+        - "webpack esbuild"
+        - "eslint eslint_d prettier"
+        - "@typescript-eslint/eslint-plugin"
+        - "@typescript-eslint/parser"
+
+
+    - name: Install commitizen
+      shell: >
+        /bin/zsh -c "{{ source_zshrc }} && pnpm -g add commitizen cz-conventional-changelog"
+
+    - name: Setup commitizen
+      ansible.builtin.lineinfile:
+        path: "~/.czrc"
+        line: '{ "path": "cz-conventional-changelog" }'
+        create: yes
+
+    - name: setup yarn
+      command:
+        cmd: echo 'export PATH=$PATH:$(yarn global bin)\n' >> {{ ansible_env.HOME }}/.zshrc
+

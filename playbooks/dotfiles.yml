@@ -1,0 +1,75 @@
+---
+- name: Get dotfiles
+  hosts: localhost
+  tags: dotfiles
+
+  vars:
+    ohmyzsh_path: "{{ ansible_env.HOME }}/.oh-my-zsh"
+    dotfiles_path: "{{ ansible_env.HOME }}/dev/github.com/maxpushka/dotfiles"
+
+  tasks:
+    - name: install prerequisities
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+        update_cache: no
+      become: true
+      ignore_errors: true
+      with_items:
+        - git
+        - stow
+        - zsh
+        - tmux
+        - exa
+        - zoxide
+
+    - name: change user shell to zsh
+      become: true
+      user:
+        name: "{{ ansible_user_id }}"
+        shell: /bin/zsh
+
+    - name: oh-my-zsh
+      block:
+        - name: clone oh-my-zsh repo
+          ansible.builtin.git:
+            repo: https://github.com/ohmyzsh/ohmyzsh.git
+            dest: "{{ ohmyzsh_path }}"
+            update: yes
+
+        - name: install autosuggestions plugin
+          ansible.builtin.git:
+            repo: https://github.com/zsh-users/zsh-autosuggestions
+            dest: "{{ ohmyzsh_path }}/custom/plugins/zsh-autosuggestions"
+            update: yes
+
+        - name: install cutsom oh-my-zsh theme
+          ansible.builtin.git:
+            repo: https://github.com/reobin/typewritten.git
+            dest: "{{ ohmyzsh_path }}/themes/typewritten"
+            update: yes
+
+    - name: clone tpm repo
+      ansible.builtin.git:
+        repo: https://github.com/tmux-plugins/tpm
+        dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm"
+        update: yes
+
+    - name: setup my dotfiles
+      block:
+        - name: create configs directory if it does not exist
+          ansible.builtin.file:
+            path: "{{ ansible_env.HOME }}/.config"
+            state: directory
+        - name: clone dotfiles to home directory
+          ansible.builtin.git:
+            repo: https://github.com/maxpushka/dotfiles.git
+            dest: "{{ dotfiles_path }}"
+            update: yes
+          ignore_errors: true
+        - name: run stow
+          command: "stow . -t {{ ansible_env.HOME }}"
+          args:
+            chdir: "{{ dotfiles_path }}"
+          ignore_errors: true
+
