@@ -1,0 +1,58 @@
+---
+- name: Install GitUI
+  hosts: localhost
+  tags: gitui
+
+  vars:
+    github_token: "{{ lookup('env','GITHUB_PERSONAL_ACCESS_TOKEN') }}"
+  
+  tasks:
+    - name: Try to get installed version
+      block:
+        - shell: echo v$(gitui --version | cut -d ' ' -f 2)
+          register: gitui_installed 
+          ignore_errors: true
+        - name: Print installed version
+          ansible.builtin.debug:
+            var: gitui_installed
+
+    - name: Get latest release from Github
+      block:
+        - name: Install or update pip
+          ansible.builtin.package:
+            name: "{{ item }}"
+            state: present
+          become: true
+          ignore_errors: true
+          with_items:
+            - python-pip
+            - python3-pip
+        - name: Install github3 python package
+          ansible.builtin.pip:
+            name: github3.py
+        - community.general.github_release:
+            user: extrawurst 
+            repo: gitui
+            action: latest_release
+            token: "{{ github_token }}"
+          register: gitui_release
+        - name: Print Latest release
+          ansible.builtin.debug:
+            var: gitui_release
+
+    - name: Install latest version
+      when: gitui_installed.stdout_lines[0] != gitui_release.tag
+      block:
+        - name: Download Binary
+          ansible.builtin.unarchive:
+            src: https://github.com/extrawurst/gitui/releases/download/{{ gitui_release.tag }}/gitui-linux-musl.tar.gz
+            dest: /tmp
+            remote_src: true
+
+        - name: Install Binary
+          ansible.builtin.copy:
+            src: /tmp/gitui
+            dest: "/usr/local/bin"
+            mode: a+x
+          become: true
+
