@@ -24,3 +24,5 @@
 - import_playbook: "./playbooks/taskfile.yml"
 
 - import_playbook: "./playbooks/gitui.yml"
+
+- import_playbook: "./playbooks/ghq.yml"

@@ -20,8 +20,12 @@
         - stow
         - zsh
         - tmux
+        - curl
+        - wget
         - exa
         - zoxide
+        - bat
+        - batcat
 
     - name: change user shell to zsh
       become: true
