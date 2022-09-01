@@ -18,9 +18,12 @@
       block:
         - name: Install prerequisities
           ansible.builtin.package:
-            name: curl
+            name: "{{ item }}"
             state: present
           become: true
+          with_items:
+            - curl
+            - unzip
 
         - name: Run deno installer script
           shell: curl -fsSL https://deno.land/install.sh | sh

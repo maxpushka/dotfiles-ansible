@@ -45,7 +45,10 @@
         - "eslint eslint_d prettier"
         - "@typescript-eslint/eslint-plugin"
         - "@typescript-eslint/parser"
-
+    
+    - name: Update tldr cache
+      shell: >
+        /bin/zsh -c "{{ source_zshrc }} && tldr --update"
 
     - name: Install commitizen
       shell: >

@@ -50,6 +50,12 @@
         remote_src: yes
       when: current_version != filename_prefix
 
+    - name: Install prerequisities
+      ansible.builtin.package:
+        name: zsh
+        state: present
+      become: true
+
     - name: Add go bin to PATH
       ansible.builtin.lineinfile:
         path: "~/.zshrc"
@@ -64,7 +70,7 @@
         create: yes
 
     - name: Install extra packages
-      command: go install "{{ item }}"
+      shell: /bin/zsh -c ". {{ ansible_env.HOME }}/.zshrc && go install {{ item }}"
       with_items:
         - github.com/cweill/gotests/gotests@latest 
         - github.com/fatih/gomodifytags@latest 

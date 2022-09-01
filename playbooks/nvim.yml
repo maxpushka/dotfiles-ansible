@@ -172,6 +172,7 @@
             - clang # for tree-sitter
             - fd
             - fd-find
+            - libsqlite3-dev
 
         - name: Install global node packages
           shell: >
