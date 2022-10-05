@@ -64,7 +64,14 @@
           # go
           export PATH=$PATH:/usr/local/go/bin             # GOROOT
           export PATH=$PATH:{{ ansible_env.HOME }}/go/bin # GOPATH
-          alias up="cd $(ghq root) && ghq get --parallel --update github.com/*/* && cd -"
+          function up {
+            init=$(pwd)
+            for root in $(ghq root --all); do
+              cd ${root}
+              ghq get --parallel --update github.com/*/* 
+            done
+            cd ${init}
+          } 
           # go end
 
         create: yes
