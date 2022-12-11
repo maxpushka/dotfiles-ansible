@@ -1,0 +1,25 @@
+---
+- import_playbook: "./plays/dotfiles.yml"
+
+- import_playbook: "./plays/nodejs.yml"
+
+- import_playbook: "./plays/deno.yml"
+
+- import_playbook: "./plays/go.yml"
+
+- import_playbook: "./plays/rust.yml"
+
+- import_playbook: "./plays/docker.yml"
+
+- import_playbook: "./plays/kubernetes.yml"
+
+- import_playbook: "./plays/minikube.yml"
+
+- import_playbook: "./plays/helm.yml"
+
+- import_playbook: "./plays/nvim.yml"
+
+- import_playbook: "./plays/github.yml"
+
+- import_playbook: "./plays/gh.yml"
+
