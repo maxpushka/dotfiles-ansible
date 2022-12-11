@@ -172,7 +172,8 @@
             - clang # for tree-sitter
             - fd
             - fd-find
-            - libsqlite3-dev
+            - libsqlite3-dev # for neoclip
+            - sqlite-devel   # for neoclip
 
         - name: Install global node packages
           shell: >

@@ -1,8 +1,6 @@
 ---
 - import_playbook: "./playbooks/dotfiles.yml"
 
-- import_playbook: "./playbooks/gh.yml"
-
 - import_playbook: "./playbooks/nodejs.yml"
 
 - import_playbook: "./playbooks/deno.yml"
@@ -21,8 +19,7 @@
 
 - import_playbook: "./playbooks/nvim.yml"
 
-- import_playbook: "./playbooks/taskfile.yml"
+- import_playbook: "./playbooks/github.yml"
 
-- import_playbook: "./playbooks/gitui.yml"
+- import_playbook: "./playbooks/gh.yml"
 
-- import_playbook: "./playbooks/ghq.yml"

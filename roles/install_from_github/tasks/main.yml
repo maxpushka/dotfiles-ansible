@@ -1,0 +1,78 @@
+# Input params:
+# - user_repo
+# - get_istalled_version
+# - asset_name
+# - install_binary
+
+- name: Get user and repo names
+  set_fact:
+    user: "{{ user_repo | split('/') | first }}"
+    repo: "{{ user_repo | split('/') | last }}"
+
+- name: Try to get installed version
+  shell: "{{ get_installed_version }}"
+  register: installed_version
+  ignore_errors: true
+- name: Print installed version
+  ansible.builtin.debug:
+    var: installed_version
+
+- name: Get latest release from Github
+  block:
+    - name: Install or update pip
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      become: true
+      ignore_errors: true
+      with_items:
+        - python-pip
+        - python3-pip
+    - name: Install github3 python package
+      ansible.builtin.pip:
+        name: github3.py
+    - community.general.github_release:
+        user: "{{ user }}" 
+        repo: "{{ repo }}"
+        action: latest_release
+        token: "{{ github_token }}"
+      register: latest_release
+    - name: Print Latest release
+      ansible.builtin.debug:
+        var: latest_release
+
+- name: Install latest version
+  when: installed_version.stdout != latest_release.tag
+  block:
+    - set_fact:
+        tag: "{{ latest_release.tag | replace('v', '') }}"
+    - set_fact:
+        _asset_name: "{{ asset_name | replace('{}', tag) }}"
+    - set_fact:
+        _unarchive_path: "{{ _asset_name | replace('.tar.gz', '') | replace('.zip', '') }}"
+
+    - debug:
+        var: _asset_name
+    - debug:
+        var: _unarchive_path
+
+    - name: Download release assets
+      ansible.builtin.get_url:
+        url: "https://github.com/{{ user }}/{{ repo }}/releases/download/{{ latest_release.tag }}/{{ _asset_name }}" 
+        dest: "/tmp"
+    - name: Unarchive downloaded assets
+      block:
+        - name: Create temp dir to unarchive asset to if it does not exist
+          ansible.builtin.file:
+            path: "/tmp/{{ _unarchive_path }}"
+            state: directory
+          ignore_errors: true
+        - ansible.builtin.unarchive:
+            src: "/tmp/{{ _asset_name }}"
+            dest: "/tmp/{{ _unarchive_path }}"
+      ignore_errors: true
+    - name: Install Binary
+      command:
+        chdir: "/tmp"
+        cmd: "{{ install_binary | replace('{}', tag) }}" 
+      become: true
