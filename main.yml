@@ -24,3 +24,5 @@
 - import_playbook: "./plays/gh.yml"
 
 - import_playbook: "./plays/flatpak.yml"
+
+- import_playbook: "./private/main.yml"
