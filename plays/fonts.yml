@@ -1,0 +1,28 @@
+---
+- name: Install fonts
+  hosts: localhost
+  tags: fonts
+
+  vars:
+    fonts_dir: "{{ ansible_env.HOME }}/.local/share/fonts"
+    nerd_fonts_url: https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts
+    font_urls:
+      - "{{ nerd_fonts_url }}/JetBrainsMono/Ligatures/Regular/complete/JetBrains%20Mono%20Regular%20Nerd%20Font%20Complete.ttf"
+      - "{{ nerd_fonts_url }}/CascadiaCode/Regular/complete/Caskaydia%20Cove%20Nerd%20Font%20Complete%20Regular.otf"
+
+  tasks:
+    - name: Create fonts user directory if not exists
+      ansible.builtin.file:
+        path: "{{ fonts_dir }}"
+        state: directory
+
+    - name: Download fonts
+      ansible.builtin.get_url:
+        url: "{{ item }}"
+        dest: "{{ fonts_dir }}"
+        mode: 755
+      with_items: "{{ font_urls }}"
+      become: true
+
+    - name: Rebuild fonts cache
+      command: "fc-cache -fv {{ fonts_dir }}"

@@ -31,14 +31,12 @@
             creates: "{{ ansible_env.HOME }}/.deno"
 
         - name: Add deno to PATH
-          ansible.builtin.lineinfile:
-            path: "~/.zshrc"
-            line: |
-
-              # deno
+          ansible.builtin.blockinfile:
+            path: "{{ ansible_env.HOME }}/.zshrc"
+            marker: "# deno {mark}"
+            marker_begin: ""
+            marker_end: "end"
+            block: |
               export DENO_INSTALL="/home/maxpushka/.deno"
               export PATH="$DENO_INSTALL/bin:$PATH"
-              # deno end
-
-            create: yes
 

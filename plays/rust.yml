@@ -18,8 +18,12 @@
       register: cargo_exists
       ignore_errors: true
 
+    - name: Update rust
+      when: cargo_exists is succeeded
+      command: rustup update
+
     - name: Install rust
-      when: cargo_exists.failed == true
+      when: cargo_exists is failed
       block:
         - name: Download installer
           get_url:
@@ -30,6 +34,3 @@
         - name: Install rust/cargo
           shell: /tmp/sh.rustup.rs -y
 
-    - name: Update rust
-      when: cargo_exists.failed == false
-      command: rustup update

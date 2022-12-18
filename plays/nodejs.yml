@@ -56,7 +56,7 @@
 
     - name: Setup commitizen
       ansible.builtin.lineinfile:
-        path: "~/.czrc"
+        path: "{{ ansible_env.HOME }}/.czrc"
         line: '{ "path": "cz-conventional-changelog" }'
         create: yes
 

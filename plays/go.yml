@@ -13,6 +13,15 @@
     download_url: https://dl.google.com/go/{{ archive_name }}
     bin_path: /usr/local/go/bin
 
+    preinstall_packages:
+      - github.com/cweill/gotests/gotests@latest
+      - github.com/fatih/gomodifytags@latest
+      - github.com/josharian/impl@latest
+      - github.com/haya14busa/goplay/cmd/goplay@latest
+      - github.com/go-delve/delve/cmd/dlv@latest
+      - golang.org/x/lint/golint@latest
+      - golang.org/x/tools/gopls@latest
+
   tasks:
     - name: Get filename prefix with latest version
       set_fact:
@@ -57,11 +66,12 @@
       become: true
 
     - name: Add go bin to PATH
-      ansible.builtin.lineinfile:
-        path: "~/.zshrc"
-        line: |
-
-          # go
+      ansible.builtin.blockinfile:
+        path: "{{ ansible_env.HOME }}/.zshrc"
+        marker: "# go {mark}"
+        marker_begin: ""
+        marker_end: "end"
+        block: |
           export PATH=$PATH:/usr/local/go/bin             # GOROOT
           export PATH=$PATH:{{ ansible_env.HOME }}/go/bin # GOPATH
           function up {
@@ -72,17 +82,7 @@
             done
             cd ${init}
           }
-          # go end
-
-        create: yes
 
     - name: Install extra packages
       shell: /bin/zsh -c ". {{ ansible_env.HOME }}/.zshrc && go install {{ item }}"
-      with_items:
-        - github.com/cweill/gotests/gotests@latest
-        - github.com/fatih/gomodifytags@latest
-        - github.com/josharian/impl@latest
-        - github.com/haya14busa/goplay/cmd/goplay@latest
-        - github.com/go-delve/delve/cmd/dlv@latest
-        - golang.org/x/lint/golint@latest
-        - golang.org/x/tools/gopls@latest
+      with_items: "{{ preinstall_packages }}"
