@@ -1,0 +1,27 @@
+---
+- name: Install or update apps from Flatpak
+  hosts: localhost
+  tags: flatpak
+  gather_facts: false
+
+  vars:
+    app_ids:
+      - com.discordapp.Discord
+      - com.getpostman.Postman
+      - com.slack.Slack
+      - com.spotify.Client
+      - md.obsidian.Obsidian
+      - org.telegram.desktop
+      - us.zoom.Zoom
+
+  tasks:
+    - name: Add flatpak repo
+      community.general.flatpak_remote:
+        name: flathub
+        state: present
+        flatpakrepo_url: https://flathub.org/repo/flathub.flatpakrepo
+
+    - name: Install multiple packages
+      community.general.flatpak:
+        name: "{{ app_ids }}"
+        state: present

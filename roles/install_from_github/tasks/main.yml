@@ -1,7 +1,7 @@
 # Input params:
 # - user_repo
-# - get_istalled_version
 # - asset_name
+# - get_istalled_version
 # - install_binary
 
 - name: Get user and repo names
@@ -24,15 +24,17 @@
         name: "{{ item }}"
         state: present
       become: true
+      run_once: true
       ignore_errors: true
       with_items:
         - python-pip
         - python3-pip
     - name: Install github3 python package
+      run_once: true
       ansible.builtin.pip:
         name: github3.py
     - community.general.github_release:
-        user: "{{ user }}" 
+        user: "{{ user }}"
         repo: "{{ repo }}"
         action: latest_release
         token: "{{ github_token }}"
@@ -58,7 +60,7 @@
 
     - name: Download release assets
       ansible.builtin.get_url:
-        url: "https://github.com/{{ user }}/{{ repo }}/releases/download/{{ latest_release.tag }}/{{ _asset_name }}" 
+        url: "https://github.com/{{ user }}/{{ repo }}/releases/download/{{ latest_release.tag }}/{{ _asset_name }}"
         dest: "/tmp"
     - name: Unarchive downloaded assets
       block:
@@ -74,5 +76,5 @@
     - name: Install Binary
       command:
         chdir: "/tmp"
-        cmd: "{{ install_binary | replace('{}', tag) }}" 
+        cmd: "{{ install_binary | replace('{}', tag) }}"
       become: true

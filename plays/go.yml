@@ -68,10 +68,10 @@
             init=$(pwd)
             for root in $(ghq root --all); do
               cd ${root}
-              ghq get --parallel --update github.com/*/* 
+              ghq get --parallel --update github.com/*/*
             done
             cd ${init}
-          } 
+          }
           # go end
 
         create: yes
@@ -79,10 +79,10 @@
     - name: Install extra packages
       shell: /bin/zsh -c ". {{ ansible_env.HOME }}/.zshrc && go install {{ item }}"
       with_items:
-        - github.com/cweill/gotests/gotests@latest 
-        - github.com/fatih/gomodifytags@latest 
-        - github.com/josharian/impl@latest 
-        - github.com/haya14busa/goplay/cmd/goplay@latest 
-        - github.com/go-delve/delve/cmd/dlv@latest 
-        - golang.org/x/lint/golint@latest 
-        - golang.org/x/tools/gopls@latest 
+        - github.com/cweill/gotests/gotests@latest
+        - github.com/fatih/gomodifytags@latest
+        - github.com/josharian/impl@latest
+        - github.com/haya14busa/goplay/cmd/goplay@latest
+        - github.com/go-delve/delve/cmd/dlv@latest
+        - golang.org/x/lint/golint@latest
+        - golang.org/x/tools/gopls@latest

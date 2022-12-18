@@ -7,4 +7,4 @@ SHELL=/bin/zsh
 export GITHUB_PERSONAL_ACCESS_TOKEN=
 
 ansible-galaxy collection install community.general
-ansible-playbook ./playbook.yml -K
+ansible-playbook ./main.yml -K

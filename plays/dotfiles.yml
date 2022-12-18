@@ -26,6 +26,9 @@
         - zoxide
         - bat
         - batcat
+        - wl-clipboard # for wayland
+        - xclip        # for xorg
+        - java-latest-openjdk-devel # fedora
 
     - name: change user shell to zsh
       become: true
