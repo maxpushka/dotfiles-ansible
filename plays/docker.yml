@@ -35,3 +35,25 @@
               register: docker_version
             - ansible.builtin.debug:
                 var: docker_version
+
+    - name: Create "docker" group
+      ansible.builtin.group:
+        name: docker
+        state: present
+    - name: Add current user to "docker" group # sudo usermod -aG docker $USER
+      ansible.builtin.user:
+        name: "{{ ansible_user_id }}"
+        groups: "docker"
+        append: yes
+      become: true
+
+    - name: Enable docker.service
+      ansible.builtin.systemd:
+        name: docker.service
+        enabled: yes
+      become: true
+    - name: Enable containerd.service
+      ansible.builtin.systemd:
+        name: containerd.service 
+        enabled: yes
+      become: true
