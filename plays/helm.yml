@@ -21,10 +21,6 @@
       ansible.builtin.get_url:
         url: "https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
         dest: "{{ download_dest }}"
-
-    - name: changing perm of {{ download_dest }} to "700"
-      file:
-        path: "{{ download_dest }}"
         mode: "700"
 
     - name: run installer script

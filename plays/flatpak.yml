@@ -13,6 +13,7 @@
       - md.obsidian.Obsidian
       - org.telegram.desktop
       - us.zoom.Zoom
+      - org.zealdocs.Zeal
 
   tasks:
     - name: Add flatpak repo

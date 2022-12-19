@@ -21,7 +21,7 @@
 
 - import_playbook: "./plays/github.yml"
 
-- import_playbook: "./plays/gh.yml"
+- import_playbook: "./plays/gh-setup.yml"
 
 - import_playbook: "./plays/flatpak.yml"
 

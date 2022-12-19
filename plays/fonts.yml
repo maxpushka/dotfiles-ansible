@@ -20,7 +20,7 @@
       ansible.builtin.get_url:
         url: "{{ item }}"
         dest: "{{ fonts_dir }}"
-        mode: 755
+        mode: 644
       with_items: "{{ font_urls }}"
       become: true
 

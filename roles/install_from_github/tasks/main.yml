@@ -1,8 +1,9 @@
 # Input params:
-# - user_repo
-# - asset_name
-# - get_istalled_version
-# - install_binary
+# - user_repo: "cli/cli"
+# - asset_name: asset to download ("gh_{}_linux_amd64.tar.gz")
+#   - curly braces expand to latest tag name without `v` prefix ("{}" -> "2.20.2")
+# - get_installed_version: a shell command to get tag of installed version
+# - install_binary: shell command that installs binary
 
 - name: Get user and repo names
   set_fact:

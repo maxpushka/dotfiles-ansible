@@ -62,10 +62,6 @@
           ansible.builtin.get_url:
             url: https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
             dest: "{{ download_dest }}"
-
-        - name: changing perm of {{ download_dest }}
-          file:
-            path: "{{ download_dest }}"
             mode: "a+x"
 
         - name: try to run
