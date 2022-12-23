@@ -33,6 +33,14 @@
         asset_name: act_Linux_x86_64.tar.gz
         get_installed_version: "echo v$(act --version | cut -d ' ' -f 3)"
         install_binary: install -o root -g root -m 755 ./act_Linux_x86_64/act /usr/local/bin
+      - user_repo: mike-engel/jwt-cli
+        asset_name: jwt-linux.tar.gz
+        get_installed_version: jwt -V | cut -d ' ' -f 2
+        install_binary: install -o root -g root -m 755 ./jwt-linux/jwt /usr/local/bin
+      - user_repo: ethereum/solidity 
+        asset_name: solc-static-linux
+        get_installed_version: echo v$(solc --version | tail -n 1 | cut -d ' ' -f 2 | cut -d '+' -f 1)
+        install_binary: install -o root -g root -m 755 ./solc-static-linux /usr/local/bin/solc
 
   tasks:
     - include_role:
