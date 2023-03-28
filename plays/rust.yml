@@ -2,15 +2,6 @@
 - name: Install rust
   tags: rust
   hosts: localhost
-  become: true
-  become_user: "{{ lookup('env', 'USER') }}"
-
-  pre_tasks:
-    - name: update repositories
-      ansible.builtin.package:
-        update_cache: yes
-      become_user: root
-      changed_when: false
 
   tasks:
     - name: Check if cargo is installed
@@ -33,4 +24,3 @@
             force: "yes"
         - name: Install rust/cargo
           shell: /tmp/sh.rustup.rs -y
-

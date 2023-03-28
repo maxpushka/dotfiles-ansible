@@ -21,6 +21,7 @@
       - github.com/go-delve/delve/cmd/dlv@latest
       - golang.org/x/lint/golint@latest
       - golang.org/x/tools/gopls@latest
+      - github.com/google/pprof@latest
 
   tasks:
     - name: Get filename prefix with latest version

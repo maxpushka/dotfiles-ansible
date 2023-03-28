@@ -1,9 +1,28 @@
-# Input params:
+# Input params
+
 # - user_repo: "cli/cli"
 # - asset_name: asset to download ("gh_{}_linux_amd64.tar.gz")
 #   - curly braces expand to latest tag name without `v` prefix ("{}" -> "2.20.2")
 # - get_installed_version: a shell command to get tag of installed version
 # - install_binary: shell command that installs binary
+
+# Usage example:
+
+# vars:
+#   apps:
+#     - user_repo: cli/cli
+#       asset_name: gh_{}_linux_amd64.tar.gz
+#       get_installed_version: "echo v$(gh version | head -1 | cut -d ' ' -f 3)"
+#       install_binary: install -o root -g root -m 755 ./gh_{}_linux_amd64/gh_{}_linux_amd64/bin/gh /usr/local/bin
+# tasks:
+#  - include_role:
+#      name: ../roles/install_from_github
+#    vars:
+#      user_repo: "{{ item.user_repo }}"
+#      asset_name: "{{ item.asset_name }}"
+#      get_installed_version: "{{ item.get_installed_version }}"
+#      install_binary: "{{ item.install_binary }}"
+#    with_items: "{{ apps }}"
 
 - name: Get user and repo names
   set_fact:

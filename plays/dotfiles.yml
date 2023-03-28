@@ -12,8 +12,7 @@
       ansible.builtin.package:
         name: "{{ item }}"
         state: present
-        update_cache: no
-      become: true
+      become: "{{ ansible_distribution != 'MacOSX' }}" # homebrew should not run with sudo priviliges
       ignore_errors: true
       with_items:
         - git
@@ -45,16 +44,14 @@
             update: yes
 
         - name: install autosuggestions plugin
-          ansible.builtin.git:
-            repo: https://github.com/zsh-users/zsh-autosuggestions
-            dest: "{{ ohmyzsh_path }}/custom/plugins/zsh-autosuggestions"
-            update: yes
+          ansible.builtin.homebrew:
+            name: zsh-autosuggestions
+            state: latest
 
-        - name: install cutsom oh-my-zsh theme
-          ansible.builtin.git:
-            repo: https://github.com/reobin/typewritten.git
-            dest: "{{ ohmyzsh_path }}/themes/typewritten"
-            update: yes
+        - name: install custom oh-my-zsh theme
+          ansible.builtin.homebrew:
+            name: typewritten
+            state: latest
 
     - name: clone tpm repo
       ansible.builtin.git:
@@ -75,7 +72,7 @@
             update: yes
           ignore_errors: true
         - name: run stow
-          command: "stow . -t {{ ansible_env.HOME }}"
+          command: "stow -t {{ ansible_env.HOME }} -S ."
           args:
             chdir: "{{ dotfiles_path }}"
           ignore_errors: true

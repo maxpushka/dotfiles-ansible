@@ -1,125 +1,7 @@
 ---
-- name: Install latest neovim
-  hosts: localhost
-  tags: nvim-install
-
-  vars:
-    github_token: "{{ lookup('env','GITHUB_PERSONAL_ACCESS_TOKEN') }}"
-
-    download_dest: /tmp/nvim.appimage
-    bin_path: /usr/local/bin/nvim
-
-  tasks:
-    - name: try to get installed nvim version
-      shell: nvim --version
-      register: installed
-      ignore_errors: true
-
-    - debug:
-        var: installed
-
-    - name: Set current_version var to the current
-      set_fact:
-        current_version: "{{ installed.stdout_lines[0].split(' ')[1] }}"
-      when: installed.failed == false
-
-    - name: Set current_version var to the none
-      set_fact:
-        current_version: "none"
-      when: installed.failed == true
-
-    - debug:
-        var: current_version
-
-    - name: get latest release of a public repository
-      block:
-        - name: Install or update pip
-          ansible.builtin.package:
-            name: "{{ item }}"
-            state: present
-          become: true
-          ignore_errors: true
-          with_items:
-            - python-pip
-            - python3-pip
-        - name: install github3 python package
-          ansible.builtin.pip:
-            name: github3.py
-        - community.general.github_release:
-            user: neovim
-            repo: neovim
-            action: latest_release
-            token: "{{ github_token }}"
-          register: latest_version
-
-        - debug:
-            var: latest_version
-
-    - name: download latest release
-      when: current_version != latest_version.tag
-      block:
-        - name: download latest binary
-          ansible.builtin.get_url:
-            url: https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-            dest: "{{ download_dest }}"
-            mode: "a+x"
-
-        - name: try to run
-          shell: "{{ download_dest }} --version"
-          register: result
-          ignore_errors: true
-
-        - debug:
-            var: result
-
-        - name: install as a binary
-          when: result.failed == false
-          shell: >
-            install -o root -g root -m 755 {{ download_dest }} {{ bin_path }}
-          args:
-            creates: "{{ bin_path }}"
-          become: true
-
-        - name: install as a squashed fs
-          when: result.failed == true
-          block:
-            - name: squash fs
-              shell: >
-                {{ download_dest }} --appimage-extract
-              args:
-                chdir: /tmp
-                creates: /tmp/squashfs-root
-              become: true
-            - name: move the src files to home dir
-              command: >
-                mv /tmp/squashfs-root/usr/ {{ ansible_env.HOME }}/.neovim-latest/
-              args:
-                removes: "/tmp/squashfs-root/usr/"
-                creates: "{{ ansible_env.HOME }}/.neovim-latest"
-              become: true
-            - name: create symbolic link to binary
-              ansible.builtin.file:
-                src: "{{ ansible_env.HOME }}/.neovim-latest/bin/nvim"
-                dest: /usr/local/bin/nvim
-                state: link
-                mode: "a+x"
-              become: true
-
-        - name: remove download_dest
-          become: true
-          block:
-            - name: remove appimage
-              ansible.builtin.file:
-                path: "{{ download_dest }}"
-                state: absent
-            - name: remove squashfs
-              ansible.builtin.file:
-                path: /tmp/squashfs-root
-                state: absent
-
 - name: Setup neovim
   hosts: localhost
-  tags: nvim-setup
+  tags: nvim
 
   vars:
     source_zshrc: . {{ ansible_env.HOME }}/.zshrc
@@ -131,7 +13,7 @@
           ansible.builtin.package:
             name: git
             state: present
-          become: true
+          become: "{{ ansible_distribution != 'MacOSX' }}"
         - ansible.builtin.git:
             repo: https://github.com/wbthomason/packer.nvim
             dest: "{{ ansible_env.HOME }}/.local/share/nvim/site/pack/packer/start/packer.nvim"
@@ -146,7 +28,7 @@
               ansible.builtin.package:
                 name: "{{ item }}"
                 state: present
-              become: true
+              become: "{{ ansible_distribution != 'MacOSX' }}"
               ignore_errors: true
               with_items:
                 - python-pip

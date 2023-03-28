@@ -1,54 +1,25 @@
 ---
-- name: "Install binaries from GitHub"
+- name: "Install utilities from GitHub"
   hosts: localhost
   tags: github
 
   vars:
-    apps:
-      - user_repo: cli/cli
-        asset_name: gh_{}_linux_amd64.tar.gz
-        get_installed_version: "echo v$(gh version | head -1 | cut -d ' ' -f 3)"
-        install_binary: install -o root -g root -m 755 ./gh_{}_linux_amd64/gh_{}_linux_amd64/bin/gh /usr/local/bin
-      - user_repo: go-task/task
-        asset_name: task_linux_amd64.tar.gz
-        get_installed_version: "task --version | cut -d ' ' -f 3"
-        install_binary: install -o root -g root -m 755 ./task_linux_amd64/task /usr/local/bin
-      - user_repo: extrawurst/gitui
-        asset_name: gitui-linux-musl.tar.gz
-        get_installed_version: "echo v$(gitui --version | cut -d ' ' -f 2)"
-        install_binary: install -o root -g root -m 755 ./gitui-linux-musl/gitui /usr/local/bin
-      - user_repo: x-motemen/ghq
-        asset_name: ghq_linux_amd64.zip
-        get_installed_version: "echo v$(ghq --version | cut -d ' ' -f 3)"
-        install_binary: install -o root -g root -m 755 ./ghq_linux_amd64/ghq_linux_amd64/ghq /usr/local/bin
-      - user_repo: pressly/goose
-        asset_name: goose_linux_x86_64
-        get_installed_version: "goose --version"
-        install_binary: install -o root -g root -m 755 ./goose_linux_x86_64 /usr/local/bin/goose
-      - user_repo: dandavison/delta
-        asset_name: delta-{}-x86_64-unknown-linux-musl.tar.gz
-        get_installed_version: "echo v$(delta --version | cut -d ' ' -f 2)"
-        install_binary: install -o root -g root -m 755 ./delta-{}-x86_64-unknown-linux-musl/delta-{}-x86_64-unknown-linux-musl/delta /usr/local/bin
-      - user_repo: nektos/act
-        asset_name: act_Linux_x86_64.tar.gz
-        get_installed_version: "echo v$(act --version | cut -d ' ' -f 3)"
-        install_binary: install -o root -g root -m 755 ./act_Linux_x86_64/act /usr/local/bin
-      - user_repo: mike-engel/jwt-cli
-        asset_name: jwt-linux.tar.gz
-        get_installed_version: jwt -V | cut -d ' ' -f 2
-        install_binary: install -o root -g root -m 755 ./jwt-linux/jwt /usr/local/bin
-      - user_repo: ethereum/solidity 
-        asset_name: solc-static-linux
-        get_installed_version: echo v$(solc --version | tail -n 1 | cut -d ' ' -f 2 | cut -d '+' -f 1)
-        install_binary: install -o root -g root -m 755 ./solc-static-linux /usr/local/bin/solc
+    brew_apps:
+      - gh
+      - go-task
+      - gitui
+      - ghq
+      - goose
+      - git-delta
+      - act
+      - mike-engel/jwt-cli/jwt-cli
+      - solidity # TODO: brew tap ethereum/ethereum
+      - neovim
+      - golangci-lint
 
   tasks:
-    - include_role:
-        name: ../roles/install_from_github
-      vars:
-        user_repo: "{{ item.user_repo }}"
-        asset_name: "{{ item.asset_name }}"
-        get_installed_version: "{{ item.get_installed_version }}"
-        install_binary: "{{ item.install_binary }}"
-      with_items: "{{ apps }}"
-
+    - name: Install from Homebrew
+      ansible.builtin.homebrew:
+        name: "{{ item }}"
+        state: latest
+      with_items: "{{ brew_apps }}"

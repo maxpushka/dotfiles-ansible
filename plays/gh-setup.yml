@@ -35,5 +35,7 @@
 
     - name: Set aliases
       command:
-        cmd: gh alias set listall "api user/repos --jq '.[].full_name'"
+        cmd: |
+          gh alias set listall "api user/repos --jq '.[].full_name'"
+          gh alias set prv "pr view -w"
 
