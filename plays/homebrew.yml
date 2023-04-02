@@ -1,0 +1,46 @@
+---
+- name: "Install Homebrew and some apps"
+  hosts: localhost
+  tags: homebrew
+
+  vars:
+    brew_apps:
+      - gh
+      - go-task
+      - gitui
+      - ghq
+      - goose
+      - git-delta
+      - act
+      - mike-engel/jwt-cli/jwt-cli
+      - solidity # TODO: brew tap ethereum/ethereum
+      - neovim
+      - golangci-lint
+      - minikube
+      - helm
+      - deno
+      - rust
+      - kubectl
+      - btop
+
+  tasks:
+    - name: Check if homebrew is installed
+      shell: command -v brew
+      register: brew_exists
+      ignore_errors: true
+
+    - name: Install Homebrew
+      block:
+        - name: Run installer script
+          shell: NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        - name: Add entry to .zshprofile
+          shell: |
+            (echo; echo 'eval "$(/opt/homebrew/bin/brew shellenv)"') >> {{ ansible_env.HOME }}/.zprofile
+            eval "$(/opt/homebrew/bin/brew shellenv)"
+      when: brew_exists is failed
+
+    - name: Install apps from Homebrew
+      ansible.builtin.homebrew:
+        name: "{{ item }}"
+        state: latest
+      with_items: "{{ brew_apps }}"

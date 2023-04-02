@@ -1,6 +1,6 @@
 - name: Authenticate and setup GitHub CLI
   hosts: localhost
-  tags: gh-setup
+  tags: gh
 
   vars:
     github_token: "{{ lookup('env','GITHUB_PERSONAL_ACCESS_TOKEN') }}"
@@ -38,4 +38,5 @@
         cmd: |
           gh alias set listall "api user/repos --jq '.[].full_name'"
           gh alias set prv "pr view -w"
+          gh alias set prc "pr create"
 
