@@ -8,3 +8,6 @@ export GITHUB_PERSONAL_ACCESS_TOKEN=
 
 ansible-galaxy collection install community.general
 ansible-playbook ./main.yml -K
+
+git submodule update --init
+ansible-playbook ./private/main.yml -K

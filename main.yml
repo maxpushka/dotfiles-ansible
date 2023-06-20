@@ -17,5 +17,3 @@
 
 - import_playbook: "./plays/fonts.yml"
 
-# NOTE: Always run private playbook last
-- import_playbook: "./private/main.yml"
