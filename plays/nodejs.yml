@@ -30,9 +30,6 @@
         - "--lts"
         - "node"
 
-    - name: Install pnpm
-      shell: curl -fsSL https://get.pnpm.io/install.sh | /bin/zsh -
-
     - name: Install global node packages
       shell: >
         /bin/zsh -c "{{ source_zshrc }} && pnpm -g add {{ item }}"
@@ -63,4 +60,3 @@
     - name: setup yarn
       command:
         cmd: echo 'export PATH=$PATH:$(yarn global bin)\n' >> {{ ansible_env.HOME }}/.zshrc
-

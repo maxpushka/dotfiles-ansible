@@ -22,6 +22,8 @@
       - rust
       - kubectl
       - btop
+      - skaffold
+      - pnpm
 
   tasks:
     - name: Check if homebrew is installed
