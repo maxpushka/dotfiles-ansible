@@ -24,6 +24,7 @@
       - btop
       - skaffold
       - pnpm
+      - tokei
 
   tasks:
     - name: Check if homebrew is installed
