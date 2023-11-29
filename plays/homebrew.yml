@@ -25,6 +25,7 @@
       - skaffold
       - pnpm
       - tokei
+      - k9s
 
   tasks:
     - name: Check if homebrew is installed
