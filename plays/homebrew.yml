@@ -13,7 +13,6 @@
       - git-delta
       - act
       - mike-engel/jwt-cli/jwt-cli
-      - solidity # TODO: brew tap ethereum/ethereum
       - neovim
       - golangci-lint
       - minikube
@@ -26,6 +25,7 @@
       - pnpm
       - tokei
       - k9s
+      - zellij
 
   tasks:
     - name: Check if homebrew is installed
