@@ -21,7 +21,6 @@
         - tmux
         - curl
         - wget
-        - exa
         - zoxide
         - bat
         - batcat

@@ -5,6 +5,7 @@
 
   vars:
     brew_apps:
+      - gcc # may be required to build formulae from source
       - gh
       - go-task
       - gitui
@@ -14,6 +15,7 @@
       - act
       - mike-engel/jwt-cli/jwt-cli
       - neovim
+      - helix
       - golangci-lint
       - minikube
       - helm
@@ -26,25 +28,42 @@
       - tokei
       - k9s
       - zellij
+      - exa
+      - ripgrep
+      - fd
 
   tasks:
-    - name: Check if homebrew is installed
+    - name: Set Homebrew installation path based on OS
+      set_fact:
+        homebrew_install_path: "/opt/homebrew/bin/brew"
+      when: ansible_os_family == "Darwin"
+
+    - name: Set Homebrew installation path based on OS
+      set_fact:
+        homebrew_install_path: "/home/linuxbrew/.linuxbrew/bin/brew"
+      when: ansible_os_family == "RedHat" or ansible_os_family == "Debian"
+
+    - name: Check if Homebrew is installed
       shell: command -v brew
       register: brew_exists
       ignore_errors: true
 
     - name: Install Homebrew
+      when: brew_exists is failed
       block:
         - name: Run installer script
           shell: NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-        - name: Add entry to .zshprofile
+        - name: Add Homebrew to shell profiles
           shell: |
-            (echo; echo 'eval "$(/opt/homebrew/bin/brew shellenv)"') >> {{ ansible_env.HOME }}/.zprofile
-            eval "$(/opt/homebrew/bin/brew shellenv)"
-      when: brew_exists is failed
+            echo 'eval "$({{ homebrew_install_path }} shellenv)"' >> {{ ansible_env.HOME }}/{{ item }}
+          loop:
+            - .zprofile
+            - .bash_profile
+            - .bashrc
 
     - name: Install apps from Homebrew
       ansible.builtin.homebrew:
         name: "{{ item }}"
         state: latest
       with_items: "{{ brew_apps }}"
+      ignore_errors: true
