@@ -7,8 +7,8 @@
     fonts_dir: "{{ ansible_env.HOME }}/.local/share/fonts"
     nerd_fonts_url: https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts
     font_urls:
-      - "{{ nerd_fonts_url }}/JetBrainsMono/Ligatures/Regular/complete/JetBrains%20Mono%20Regular%20Nerd%20Font%20Complete.ttf"
-      - "{{ nerd_fonts_url }}/CascadiaCode/Regular/complete/Caskaydia%20Cove%20Nerd%20Font%20Complete%20Regular.otf"
+      - "{{ nerd_fonts_url }}/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf"
+      - "{{ nerd_fonts_url }}/CascadiaCode/Regular/CaskaydiaCoveNerdFont-Regular.ttf"
 
   tasks:
     - name: Create fonts user directory if not exists
