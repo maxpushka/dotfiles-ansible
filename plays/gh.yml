@@ -33,9 +33,11 @@
         - "kawarimidoll/gh-q"
 
     - name: Set aliases
+      vars:
+        gh_aliases:
+          listall: "api user/repos --jq '.[].full_name'"
+          prv: "pr view -w"
+          prc: "pr create"
       command:
-        cmd: |
-          gh alias set listall "api user/repos --jq '.[].full_name'"
-          gh alias set prv "pr view -w"
-          gh alias set prc "pr create"
-
+        cmd: "gh alias set --clobber {{ item.key }} \"{{ item.value }}\""
+      loop: "{{ lookup('dict', gh_aliases) }}"
