@@ -48,17 +48,6 @@
             name: zsh-autosuggestions
             state: latest
 
-        - name: install custom oh-my-zsh theme
-          ansible.builtin.homebrew:
-            name: typewritten
-            state: latest
-
-    - name: clone tpm repo
-      ansible.builtin.git:
-        repo: https://github.com/tmux-plugins/tpm
-        dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm"
-        update: yes
-
     - name: setup my dotfiles
       block:
         - name: create configs directory if it does not exist
