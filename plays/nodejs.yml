@@ -16,9 +16,21 @@
         - curl
         - zsh
 
+    - name: Check if NVM is installed
+      shell: /bin/zsh -c "command -v nvm"
+      register: nvm_exists
+      ignore_errors: true
+
     - name: Install nvm
-      shell: >
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | /bin/zsh -
+      when: nvm_exists is failed
+      ansible.builtin.shell: >
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash;
+
+        cat << 'EOF' >> {{ ansible_env.HOME }}/.zshrc
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+        EOF
       args:
         creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
 
@@ -29,6 +41,9 @@
       loop:
         - "--lts"
         - "node"
+
+    - name: Set up PNPM
+      ansible.builtin.shell: /bin/zsh -c "pnpm setup"
 
     - name: Install global node packages
       shell: >
