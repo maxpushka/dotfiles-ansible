@@ -61,7 +61,6 @@
             update: yes
           ignore_errors: true
         - name: run stow
-          command: "stow -t {{ ansible_env.HOME }} -S ."
+          command: "stow -t {{ ansible_env.HOME }} -R ."
           args:
             chdir: "{{ dotfiles_path }}"
-          ignore_errors: true
