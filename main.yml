@@ -1,17 +1,13 @@
 ---
+- import_playbook: "./plays/homebrew.yml"
+
 - import_playbook: "./plays/dotfiles.yml"
 
-- import_playbook: "./plays/homebrew.yml"
+- import_playbook: "./plays/gh.yml"
 
 - import_playbook: "./plays/nodejs.yml"
 
-- import_playbook: "./plays/go.yml"
-
 - import_playbook: "./plays/docker.yml"
-
-- import_playbook: "./plays/nvim.yml"
-
-- import_playbook: "./plays/gh.yml"
 
 - import_playbook: "./plays/flatpak.yml"
 
