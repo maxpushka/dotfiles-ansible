@@ -24,6 +24,7 @@
       - kubectl
       - btop
       - skaffold
+      - werf
       - pnpm
       - tokei
       - k9s
