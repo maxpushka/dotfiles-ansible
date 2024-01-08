@@ -17,6 +17,7 @@
       - org.kiwix.desktop
       - com.transmissionbt.Transmission
       - org.videolan.VLC
+      - org.gnome.Extensions
 
   tasks:
     - name: Add flatpak repo
