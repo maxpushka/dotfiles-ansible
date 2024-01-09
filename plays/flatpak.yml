@@ -8,7 +8,6 @@
     app_ids:
       - com.discordapp.Discord
       - com.getpostman.Postman
-      - com.slack.Slack
       - com.spotify.Client
       - md.obsidian.Obsidian
       - org.telegram.desktop
