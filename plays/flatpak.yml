@@ -17,6 +17,7 @@
       - com.transmissionbt.Transmission
       - org.videolan.VLC
       - org.gnome.Extensions
+      - com.github.tchx84.Flatseal
 
   tasks:
     - name: Add flatpak repo
