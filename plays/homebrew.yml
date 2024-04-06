@@ -32,6 +32,7 @@
       - exa
       - ripgrep
       - fd
+      - grpcurl
 
   tasks:
     - name: Set Homebrew installation path based on OS
