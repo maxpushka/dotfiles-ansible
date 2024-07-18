@@ -29,7 +29,7 @@
       - tokei
       - k9s
       - zellij
-      - exa
+      - eza
       - ripgrep
       - fd
       - grpcurl
