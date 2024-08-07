@@ -38,6 +38,7 @@
           listall: "api user/repos --jq '.[].full_name'"
           prv: "pr view -w"
           prc: "pr create"
+          rv: "repo view -w"
       command:
         cmd: "gh alias set --clobber {{ item.key }} \"{{ item.value }}\""
       loop: "{{ lookup('dict', gh_aliases) }}"
