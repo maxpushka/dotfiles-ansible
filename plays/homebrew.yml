@@ -13,7 +13,6 @@
       - goose
       - git-delta
       - act
-      - mike-engel/jwt-cli/jwt-cli
       - neovim
       - helix
       - golangci-lint
