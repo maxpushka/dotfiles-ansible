@@ -21,6 +21,7 @@
       - helm
       - deno
       - rust
+      - docker-compose
       - kubectl
       - btop
       - skaffold

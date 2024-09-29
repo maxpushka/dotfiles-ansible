@@ -36,14 +36,6 @@
             - ansible.builtin.debug:
                 var: docker_version
 
-    - include_role:
-        name: ../roles/install_from_github
-      vars:
-        user_repo: "docker/compose"
-        asset_name: "docker-compose-linux-x86_64"
-        get_installed_version: "docker-compose --version | cut -d ' ' -f 4"
-        install_binary: install -o root -g root -m 755 ./docker-compose-linux-x86_64 /usr/local/bin/docker-compose
-
     - name: Create "docker" group
       ansible.builtin.group:
         name: docker
