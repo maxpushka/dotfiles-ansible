@@ -33,6 +33,8 @@
       - ripgrep
       - fd
       - grpcurl
+      - jdtls
+      - gradle
 
   tasks:
     - name: Set Homebrew installation path based on OS
