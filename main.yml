@@ -5,6 +5,15 @@
 
 - import_playbook: "./plays/gh.yml"
 
+# NOTE: now RESTART the machine (just logout is not enough)
+- name: Reboot the machine after initial setups
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Reboot the machine
+      ansible.builtin.reboot:
+        reboot_timeout: 300
+
 - import_playbook: "./plays/nodejs.yml"
 
 - import_playbook: "./plays/docker.yml"
@@ -13,3 +22,11 @@
 
 - import_playbook: "./plays/fonts.yml"
 
+# NOTE: now do another RESTART
+- name: Reboot the machine after final setups
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Reboot the machine
+      ansible.builtin.reboot:
+        reboot_timeout: 300
