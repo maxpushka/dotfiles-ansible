@@ -12,27 +12,25 @@
       - ghq
       - goose
       - git-delta
-      - act
       - neovim
       - helix
       - golangci-lint
-      - minikube
       - helm
       - deno
       - rust
       - docker-compose
       - kubectl
       - btop
-      - skaffold
-      - werf
       - pnpm
       - tokei
-      - k9s
       - zellij
       - eza
       - ripgrep
       - fd
+      - fzf
+      - bat
       - starship
+      - zoxide
       - grpcurl
       - jdtls
       - gradle
