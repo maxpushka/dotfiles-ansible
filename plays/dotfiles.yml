@@ -34,19 +34,6 @@
         name: "{{ ansible_user_id }}"
         shell: /bin/zsh
 
-    - name: oh-my-zsh
-      block:
-        - name: clone oh-my-zsh repo
-          ansible.builtin.git:
-            repo: https://github.com/ohmyzsh/ohmyzsh.git
-            dest: "{{ ohmyzsh_path }}"
-            update: yes
-
-        - name: install autosuggestions plugin
-          ansible.builtin.homebrew:
-            name: zsh-autosuggestions
-            state: latest
-
     - name: setup my dotfiles
       block:
         - name: create configs directory if it does not exist
