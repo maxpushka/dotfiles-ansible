@@ -34,6 +34,7 @@
       - grpcurl
       - jdtls
       - gradle
+      - zsh-autosuggestions # for Fish-like command completion
 
   tasks:
     - name: Set Homebrew installation path based on OS
