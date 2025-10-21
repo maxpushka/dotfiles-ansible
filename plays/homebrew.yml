@@ -38,6 +38,9 @@
       - jq
       - yq
       - protobuf
+      - protoc-gen-go
+      - protoc-gen-go-grpc
+
 
   tasks:
     - name: Set Homebrew installation path based on OS
