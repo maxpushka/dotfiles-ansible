@@ -36,6 +36,8 @@
       - gradle
       - zsh-autosuggestions # for Fish-like command completion
       - jq
+      - yq
+      - protobuf
 
   tasks:
     - name: Set Homebrew installation path based on OS
