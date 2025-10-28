@@ -35,7 +35,6 @@
     - name: Set aliases
       vars:
         gh_aliases:
-          listall: "api user/repos --jq '.[].full_name'"
           prv: "pr view -w"
           prc: "pr create"
           rv: "repo view -w"
