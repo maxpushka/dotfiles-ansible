@@ -40,7 +40,12 @@
       - protobuf
       - protoc-gen-go
       - protoc-gen-go-grpc
+      - tree
+      - localtunnel
+      - ledger
 
+      # TAPS:
+      # brew tap nats-io/nats-tools; brew install nats-io/nats-tools/nats
 
   tasks:
     - name: Set Homebrew installation path based on OS
