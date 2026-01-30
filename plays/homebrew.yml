@@ -44,6 +44,7 @@
       - tree
       - localtunnel
       - ledger
+      - tea
 
       # TAPS:
       # brew tap nats-io/nats-tools; brew install nats-io/nats-tools/nats
