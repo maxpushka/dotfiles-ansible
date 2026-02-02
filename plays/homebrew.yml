@@ -18,7 +18,7 @@
       - golangci-lint
       - helm
       - deno
-      - rust
+      - rustup
       - docker-compose
       - kubectl
       - btop
@@ -45,9 +45,15 @@
       - localtunnel
       - ledger
       - tea
+      - age
+      - sops
+      - postgresql@18
 
       # TAPS:
       # brew tap nats-io/nats-tools; brew install nats-io/nats-tools/nats
+
+      # CASKS:
+      # brew install --cask codex claude-code
 
   tasks:
     - name: Set Homebrew installation path based on OS
