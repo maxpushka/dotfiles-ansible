@@ -47,7 +47,9 @@
       - tea
       - age
       - sops
-      - postgresql@18
+      - postgresql    # version 14, includes psql
+      - postgresql@18 # latest version, no tools included
+      - tilt
 
       # TAPS:
       # brew tap nats-io/nats-tools; brew install nats-io/nats-tools/nats
