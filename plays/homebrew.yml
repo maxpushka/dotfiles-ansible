@@ -50,6 +50,7 @@
       - postgresql    # version 14, includes psql
       - postgresql@18 # latest version, no tools included
       - tilt
+      - graphviz # for pprof to render graphs
 
       # TAPS:
       # brew tap nats-io/nats-tools; brew install nats-io/nats-tools/nats
