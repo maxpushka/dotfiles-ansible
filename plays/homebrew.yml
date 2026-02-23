@@ -9,6 +9,7 @@
       - gh
       - go-task
       - gitui
+      - tig
       - ghq
       - goose
       - git-delta
@@ -57,6 +58,7 @@
 
       # CASKS:
       # brew install --cask codex claude-code
+      # brew install --cask utm
 
   tasks:
     - name: Set Homebrew installation path based on OS
