@@ -52,6 +52,7 @@
       - postgresql@18 # latest version, no tools included
       - tilt
       - graphviz # for pprof to render graphs
+      - csvlens
 
       # TAPS:
       # brew tap nats-io/nats-tools; brew install nats-io/nats-tools/nats
