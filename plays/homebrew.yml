@@ -56,6 +56,7 @@
 
       # TAPS:
       # brew tap nats-io/nats-tools; brew install nats-io/nats-tools/nats
+      # brew tap hashicorp/tap; brew install hashicorp/tap/nomad
 
       # CASKS:
       # brew install --cask codex claude-code
