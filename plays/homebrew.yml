@@ -6,7 +6,8 @@
   vars:
     brew_apps:
       - gcc # may be required to build formulae from source
-      - gh
+      - gh # GitHub
+      - glab # GitLab
       - go-task
       - gitui
       - tig
@@ -36,7 +37,7 @@
       - grpcurl
       - jdtls
       - gradle
-      - zsh-autosuggestions # for Fish-like command completion
+      - zsh-autosuggestions # for Fish-like command completion for zsh
       - jq
       - yq
       - protobuf
@@ -48,11 +49,11 @@
       - tea
       - age
       - sops
-      - postgresql    # version 14, includes psql
-      - postgresql@18 # latest version, no tools included
+      - postgresql # latest version, psql included under /bin directory
       - tilt
       - graphviz # for pprof to render graphs
       - csvlens
+      - hf
 
       # TAPS:
       # brew tap nats-io/nats-tools; brew install nats-io/nats-tools/nats
